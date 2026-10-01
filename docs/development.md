@@ -80,6 +80,23 @@ SQLmap, WPScan, or another scanner merely to run the unit suite.
 - Verify sensitive values are absent from logs, metadata, snapshots, and reports.
 - Do not depend on wall-clock timing when an injected clock can make a test deterministic.
 
+## Code quality and static analysis
+
+Maintain high code standards using the automated gates configured in `pyproject.toml`
+and `.github/workflows/ci.yml`:
+
+```shell
+# Check formatting
+python -m ruff format --check .
+
+# Run linter
+python -m ruff check .
+
+# Run strict static type checking
+python -m mypy webvulnscanner scripts
+```
+
+
 ## Safety requirements
 
 All development assumes authorized use against an explicit scope. Safe defaults are
@@ -121,3 +138,45 @@ At the end of each task, report:
 - confirmation that no later task was implemented.
 
 Do not hide failures or claim a check passed when it was not run.
+
+## Supported tool versions and release procedure
+
+### Supported tool matrix
+
+- **Nmap**: version 7.80 or newer (tested with 7.9x)
+- **Nuclei**: version 3.0.0 or newer (tested with v3.x)
+- **Subfinder**: version 2.5.0 or newer (tested with v2.x)
+- **Wappalyzer**: version 6.0 or newer (tested with wappalyzer-cli)
+- **Dirsearch**: version 0.4.0 or newer (tested with 0.4.x)
+- **Gobuster**: version 3.0.0 or newer (tested with 3.x)
+- **SQLmap**: version 1.5.0 or newer (tested with 1.8x)
+- **WPScan**: version 3.8.0 or newer (tested with 3.8x)
+- **Whois**: standard Linux/macOS whois utility
+
+Run `python scripts/verify_tools.py` to audit external tool versions locally.
+
+### Release procedure
+
+Before tagging and releasing a new version:
+1. Ensure all tasks in `TASKS.md` are marked `Completed`.
+2. Verify all quality gates pass:
+   ```shell
+   python -m ruff format --check .
+   python -m ruff check .
+   python -m mypy webvulnscanner scripts
+   ```
+3. Run the complete test suite (unit and offline integration tests):
+   ```shell
+   python -m pytest
+   ```
+4. Verify safe defaults:
+   ```shell
+   python -m pytest tests/integration/test_safe_defaults.py
+   ```
+5. Confirm package builds cleanly:
+   ```shell
+   python -m pip install build
+   python -m build
+   ```
+6. Tag the release in git: `git tag -a v0.1.0 -m "Release v0.1.0"`
+

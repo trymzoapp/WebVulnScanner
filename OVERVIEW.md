@@ -253,6 +253,7 @@ scan directory, stage statuses, and controlled errors.
 
 ```shell
 python -m webvulnscanner.cli scan https://example.com
+python -m webvulnscanner.cli scan https://telgoo5.com
 ```
 
 Use an alternative storage location:

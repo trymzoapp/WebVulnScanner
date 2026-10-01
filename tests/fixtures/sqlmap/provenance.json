@@ -1,0 +1,6 @@
+{
+  "tool": "sqlmap",
+  "supported_version": "1.8x",
+  "schema_format": "json_wrapper_and_text",
+  "description": "Sanitized SQLmap stdout payload containing parameter injection confirmations."
+}

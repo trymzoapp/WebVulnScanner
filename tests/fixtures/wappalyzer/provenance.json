@@ -1,0 +1,6 @@
+{
+  "tool": "wappalyzer",
+  "supported_version": "6.x",
+  "schema_format": "json",
+  "description": "Sanitized Wappalyzer JSON structure containing technology detection objects."
+}

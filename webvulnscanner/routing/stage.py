@@ -103,6 +103,9 @@ class RoutingStage(PipelineStage):
         techs: list[Technology] = []
         fp_outcome = previous.get(StageName.FINGERPRINT)
         if fp_outcome and fp_outcome.artifacts:
+            fp_art = fp_outcome.artifacts.get("fingerprint")
+            if hasattr(fp_art, "technologies") and isinstance(fp_art.technologies, tuple):
+                techs.extend(fp_art.technologies)
             raw_techs = fp_outcome.artifacts.get("technologies", [])
             if isinstance(raw_techs, (list, tuple)):
                 for item in raw_techs:
@@ -119,6 +122,11 @@ class RoutingStage(PipelineStage):
         services: list[WebService] = []
         fp_outcome = previous.get(StageName.FINGERPRINT)
         if fp_outcome and fp_outcome.artifacts:
+            fp_art = fp_outcome.artifacts.get("fingerprint")
+            if hasattr(fp_art, "web_services") and isinstance(fp_art.web_services, tuple):
+                services.extend(fp_art.web_services)
+            elif hasattr(fp_art, "services") and isinstance(fp_art.services, tuple):
+                services.extend(fp_art.services)
             raw_services = fp_outcome.artifacts.get("services", [])
             if isinstance(raw_services, (list, tuple)):
                 for item in raw_services:
@@ -136,6 +144,11 @@ class RoutingStage(PipelineStage):
         for stage_name in (StageName.PASSIVE, StageName.FINGERPRINT):
             outcome = previous.get(stage_name)
             if outcome and outcome.artifacts:
+                art = outcome.artifacts.get(stage_name.value)
+                if hasattr(art, "query_urls") and isinstance(art.query_urls, tuple):
+                    urls.extend(art.query_urls)
+                if hasattr(art, "urls") and isinstance(art.urls, tuple):
+                    urls.extend(art.urls)
                 raw_urls = outcome.artifacts.get("urls", [])
                 if isinstance(raw_urls, (list, tuple)):
                     for u in raw_urls:

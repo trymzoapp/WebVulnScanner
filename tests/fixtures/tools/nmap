@@ -1,0 +1,3 @@
+#!/bin/sh
+PYTHON="${PYTHON:-python3}"
+exec "$PYTHON" "$(dirname "$0")/fake_tool.py" nmap "$@"

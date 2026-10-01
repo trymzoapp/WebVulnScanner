@@ -1,0 +1,6 @@
+{
+  "tool": "nmap",
+  "supported_version": "7.9x",
+  "schema_format": "xml",
+  "description": "Sanitized Nmap XML scan output covering open, closed, and unconfigured ports."
+}

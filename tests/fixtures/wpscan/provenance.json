@@ -1,0 +1,6 @@
+{
+  "tool": "wpscan",
+  "supported_version": "3.8x",
+  "schema_format": "json",
+  "description": "Sanitized WPScan JSON report covering core, plugin, and theme vulnerabilities."
+}

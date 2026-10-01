@@ -1,0 +1,6 @@
+{
+  "tool": "subfinder",
+  "supported_version": "v2.x",
+  "schema_format": "jsonl",
+  "description": "Sanitized Subfinder JSONL records with in-scope and out-of-scope hostnames."
+}

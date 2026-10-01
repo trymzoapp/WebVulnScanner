@@ -1,0 +1,6 @@
+{
+  "tool": "nuclei",
+  "supported_version": "v3.x",
+  "schema_format": "jsonl",
+  "description": "Sanitized Nuclei JSONL stream output containing findings, matcher metadata, and error lines."
+}
