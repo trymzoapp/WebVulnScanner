@@ -1,0 +1,22 @@
+{
+  "target_url": "https://example.com/",
+  "version": {
+    "number": "6.0",
+    "vulnerabilities": [
+      {
+        "title": "WordPress 6.0 - Unauthenticated XSS",
+        "vuln_type": "XSS",
+        "references": {
+          "cve": ["CVE-2022-31812"]
+        }
+      }
+    ]
+  },
+  "interesting_findings": [
+    {
+      "type": "headers",
+      "to_s": "Server: Nginx",
+      "url": "https://example.com/"
+    }
+  ]
+}

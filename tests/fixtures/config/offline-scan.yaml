@@ -1,0 +1,19 @@
+scanners:
+  headers:
+    enabled: false
+  robots:
+    enabled: false
+  whois:
+    enabled: false
+  wayback:
+    enabled: false
+  subfinder:
+    enabled: false
+  wappalyzer:
+    enabled: false
+  nmap:
+    enabled: false
+  gobuster:
+    enabled: false
+  dirsearch:
+    enabled: false

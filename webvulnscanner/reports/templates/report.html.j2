@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebVulnScanner Assessment Report - {{ target_url }}</title>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-critical: #ef4444;
+            --accent-high: #f97316;
+            --accent-medium: #eab308;
+            --accent-low: #3b82f6;
+            --accent-info: #64748b;
+            --border: #334155;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+        .container { max-width: 1100px; margin: 0 auto; }
+        .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        h1, h2, h3 { color: var(--text-primary); margin-top: 0; }
+        .badge { display: inline-block; padding: 0.25rem 0.6rem; border-radius: 4px; font-weight: bold; font-size: 0.85rem; text-transform: uppercase; }
+        .badge-critical { background: var(--accent-critical); color: white; }
+        .badge-high { background: var(--accent-high); color: white; }
+        .badge-medium { background: var(--accent-medium); color: black; }
+        .badge-low { background: var(--accent-low); color: white; }
+        .badge-info { background: var(--accent-info); color: white; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { border: 1px solid var(--border); padding: 0.75rem; text-align: left; }
+        th { background: rgba(255, 255, 255, 0.05); }
+        code, pre { background: rgba(0, 0, 0, 0.3); border-radius: 4px; font-family: monospace; }
+        code { padding: 0.2rem 0.4rem; }
+        pre { padding: 1rem; overflow-x: auto; }
+        .notice { background: rgba(59, 130, 246, 0.1); border-left: 4px solid var(--accent-low); padding: 1rem; margin-bottom: 1.5rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="notice">
+            <strong>Authorized Security Assessment Report</strong><br>
+            Target: <code>{{ target_url }}</code> | Scan ID: <code>{{ scan_id }}</code> | Profile: <code>{{ profile }}</code>
+        </div>
+
+        <div class="card">
+            <h2>Severity Summary</h2>
+            <table>
+                <thead>
+                    <tr><th>Severity</th><th>Count</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><span class="badge badge-critical">Critical</span></td><td>{{ summary.critical }}</td></tr>
+                    <tr><td><span class="badge badge-high">High</span></td><td>{{ summary.high }}</td></tr>
+                    <tr><td><span class="badge badge-medium">Medium</span></td><td>{{ summary.medium }}</td></tr>
+                    <tr><td><span class="badge badge-low">Low</span></td><td>{{ summary.low }}</td></tr>
+                    <tr><td><span class="badge badge-info">Info</span></td><td>{{ summary.info }}</td></tr>
+                    <tr><td><strong>Total</strong></td><td><strong>{{ summary.total }}</strong></td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>Vulnerability Findings ({{ findings|length }})</h2>
+            {% if not findings %}
+                <p>No vulnerability findings identified.</p>
+            {% else %}
+                {% for finding in findings %}
+                    <div style="border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1rem;">
+                        <h3>
+                            <span class="badge badge-{{ finding.severity }}">{{ finding.severity }}</span>
+                            {{ finding.title }}
+                        </h3>
+                        <p><strong>Resource:</strong> <code>{{ finding.affected_resource }}</code></p>
+                        {% if finding.parameter %}<p><strong>Parameter:</strong> <code>{{ finding.parameter }}</code></p>{% endif %}
+                        {% if finding.description %}<p>{{ finding.description }}</p>{% endif %}
+                        {% if finding.evidence %}
+                            <p><strong>Evidence:</strong></p>
+                            <ul>
+                            {% for ev in finding.evidence %}
+                                <li><code>{{ ev }}</code></li>
+                            {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        {% if errors %}
+        <div class="card" style="border-color: var(--accent-critical);">
+            <h2 style="color: var(--accent-critical);">Execution Errors & Warnings</h2>
+            <ul>
+            {% for err in errors %}
+                <li>{{ err }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

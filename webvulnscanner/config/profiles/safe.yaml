@@ -1,0 +1,21 @@
+profile:
+  name: "safe"
+  safety:
+    allow_destructive: false
+    allow_auth_bypass: false
+    allow_waf_bypass: false
+    allow_rate_limit_bypass: false
+    max_requests_per_second: 5.0
+    max_scanners: 3
+
+scanners:
+  gobuster:
+    enabled: false
+  dirsearch:
+    enabled: false
+  sqlmap:
+    concurrency: 1
+    rate_limit_per_second: 1.0
+  nuclei:
+    concurrency: 2
+    rate_limit_per_second: 5.0

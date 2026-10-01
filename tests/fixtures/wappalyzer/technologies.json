@@ -1,0 +1,23 @@
+{
+  "https://example.com/": {
+    "technologies": [
+      {
+        "name": "WordPress",
+        "version": "6.6",
+        "confidence": 100,
+        "categories": [{"id": 1, "name": "CMS"}],
+        "website": "https://wordpress.org"
+      },
+      {
+        "name": "PHP",
+        "version": "",
+        "confidence": "80",
+        "categories": ["Programming languages"]
+      },
+      {
+        "name": "",
+        "confidence": 100
+      }
+    ]
+  }
+}

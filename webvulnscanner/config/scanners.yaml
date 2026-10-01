@@ -1,0 +1,73 @@
+scanners:
+  headers:
+    enabled: true
+    executable: null
+    wordlist: null
+    concurrency: 2
+    rate_limit_per_second: 5.0
+  robots:
+    enabled: true
+    executable: null
+    wordlist: null
+    concurrency: 2
+    rate_limit_per_second: 5.0
+  whois:
+    enabled: true
+    executable: "whois"
+    wordlist: null
+    concurrency: 1
+    rate_limit_per_second: 1.0
+  wayback:
+    enabled: true
+    executable: null
+    wordlist: null
+    concurrency: 1
+    rate_limit_per_second: 2.0
+  subfinder:
+    enabled: true
+    executable: "subfinder"
+    wordlist: null
+    concurrency: 2
+    rate_limit_per_second: 5.0
+  wappalyzer:
+    enabled: true
+    executable: "wappalyzer"
+    wordlist: null
+    concurrency: 2
+    rate_limit_per_second: 5.0
+  nmap:
+    enabled: true
+    executable: "nmap"
+    wordlist: null
+    concurrency: 1
+    rate_limit_per_second: 2.0
+  gobuster:
+    enabled: false
+    executable: "gobuster"
+    wordlist: null
+    concurrency: 2
+    rate_limit_per_second: 5.0
+  dirsearch:
+    enabled: false
+    executable: "dirsearch"
+    wordlist: null
+    concurrency: 2
+    rate_limit_per_second: 5.0
+  nuclei:
+    enabled: true
+    executable: "nuclei"
+    wordlist: null
+    concurrency: 2
+    rate_limit_per_second: 5.0
+  sqlmap:
+    enabled: true
+    executable: "sqlmap"
+    wordlist: null
+    concurrency: 1
+    rate_limit_per_second: 1.0
+  wpscan:
+    enabled: true
+    executable: "wpscan"
+    wordlist: null
+    concurrency: 1
+    rate_limit_per_second: 1.0

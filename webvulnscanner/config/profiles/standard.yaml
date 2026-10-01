@@ -1,0 +1,26 @@
+profile:
+  name: "standard"
+  safety:
+    allow_destructive: false
+    allow_auth_bypass: false
+    allow_waf_bypass: false
+    allow_rate_limit_bypass: false
+    max_requests_per_second: 10.0
+    max_scanners: 5
+
+concurrency:
+  max_scanners: 5
+  max_targets: 2
+
+scanners:
+  gobuster:
+    enabled: true
+    concurrency: 3
+    rate_limit_per_second: 10.0
+  dirsearch:
+    enabled: true
+    concurrency: 3
+    rate_limit_per_second: 10.0
+  nuclei:
+    concurrency: 3
+    rate_limit_per_second: 10.0

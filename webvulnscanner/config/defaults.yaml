@@ -1,0 +1,56 @@
+timeouts:
+  default: 300
+  headers: 30
+  robots: 30
+  whois: 60
+  wayback: 120
+  subfinder: 300
+  wappalyzer: 120
+  nmap: 300
+  gobuster: 300
+  dirsearch: 300
+  nuclei: 600
+  sqlmap: 600
+  wpscan: 600
+
+concurrency:
+  max_scanners: 3
+  max_targets: 2
+
+http:
+  user_agent: "WebVulnScanner/0.1 (authorized security assessment)"
+  max_redirects: 5
+  max_response_bytes: 1048576
+
+wayback:
+  endpoint: "https://web.archive.org/cdx/search/cdx"
+  max_records: 5000
+  page_size: 500
+
+fingerprint:
+  ports: [80, 443, 8080, 8443]
+  timing_template: 2
+  host_timeout_seconds: 120
+
+discovery:
+  status_codes: [200, 204, 301, 302, 307, 308, 401, 403]
+  dirsearch_extensions: [html, php, js, txt]
+  max_recursion_depth: 0
+
+reports:
+  json: true
+  markdown: true
+  html: true
+
+storage:
+  root: "./runs"
+
+profile:
+  name: "safe"
+  safety:
+    allow_destructive: false
+    allow_auth_bypass: false
+    allow_waf_bypass: false
+    allow_rate_limit_bypass: false
+    max_requests_per_second: 5.0
+    max_scanners: 3

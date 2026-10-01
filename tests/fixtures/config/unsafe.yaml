@@ -1,0 +1,4 @@
+profile:
+  name: "safe"
+  safety:
+    allow_destructive: true

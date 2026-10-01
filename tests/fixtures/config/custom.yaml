@@ -1,0 +1,16 @@
+profile:
+  name: "safe"
+
+storage:
+  root: "./custom-runs"
+
+reports:
+  html: false
+
+timeouts:
+  headers: 15
+
+scanners:
+  nuclei:
+    executable: "/opt/tools/nuclei"
+    rate_limit_per_second: 3.0

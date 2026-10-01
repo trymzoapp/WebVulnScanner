@@ -1,0 +1,6 @@
+{"host":"api.example.com","source":"crtsh","input":"example.com"}
+{"host":"API.EXAMPLE.COM.","source":"dnsdumpster","input":"example.com"}
+{"host":"mobile.example.com","source":"waybackarchive","input":"example.com"}
+{"host":"outside.example.net","source":"crtsh","input":"example.com"}
+not terminal output
+{"source":"crtsh","input":"example.com"}

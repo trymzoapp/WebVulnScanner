@@ -1,0 +1,4 @@
+{"template-id":"git-config","info":{"name":"Git Config Exposure","severity":"medium","description":"Git configuration file was found exposed.","reference":["https://git-scm.com"]},"matcher-name":"http-git-config","matched-at":"https://example.com/.git/config"}
+{"template-id":"tech-detect","info":{"name":"WAF Detection","severity":"info"},"matched-at":"https://example.com/"}
+invalid json line
+{"template-id":"missing-matched-at","info":{"name":"Broken Record"}}

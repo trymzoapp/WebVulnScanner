@@ -1,0 +1,5 @@
+profile:
+  name: "safe"
+reports:
+  json: true
+  broken: [unterminated

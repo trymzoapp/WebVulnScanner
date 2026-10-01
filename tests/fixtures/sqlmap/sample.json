@@ -1,0 +1,4 @@
+{
+  "target": "https://example.com/item?id=1",
+  "stdout": "Parameter: id (GET)\n    Type: boolean-based blind\n    Title: AND boolean-based blind - WHERE or HAVING clause"
+}
