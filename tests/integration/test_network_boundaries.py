@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import threading
 from collections.abc import Generator
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -11,7 +12,7 @@ from urllib.parse import urlparse
 import pytest
 
 from webvulnscanner.config.loader import load_config
-from webvulnscanner.core.context import ScanContext
+from webvulnscanner.core.context import create_scan_context
 from webvulnscanner.models.scan_result import ScannerStatus
 from webvulnscanner.models.target import Target
 from webvulnscanner.scanners.passive.headers import HeadersScanner
@@ -95,84 +96,88 @@ def boundary_server() -> Generator[BoundaryServer, None, None]:
 @pytest.mark.asyncio
 async def test_cross_domain_redirect_is_blocked(
     boundary_server: BoundaryServer,
+    tmp_path: Path,
 ) -> None:
     """Scanner must halt on cross-domain redirect and not access out-of-scope targets."""
     config = load_config()
     target_url = f"{boundary_server.base_url}/cross-domain-redirect"
     target = Target(target_url)
 
-    context = ScanContext(
-        scan_id="20261001-boundary01",
-        target=target,
-        storage_root=Path("runs"),
+    context = create_scan_context(
+        tmp_path / "runs",
+        target,
         profile_name="safe",
-        started_at=None,
+        scanner_configuration={},
     )
 
     scanner = HeadersScanner(
         configuration=config,
         context=context,
-        target=target,
     )
 
     result = await scanner.run()
 
     # The scanner should register a controlled failure/warning for out-of-scope redirect
-    assert result.status in (ScannerStatus.FAILED, ScannerStatus.WARNING)
+    assert result.status == ScannerStatus.FAILED
     error_codes = [err.code for err in result.errors]
     assert "out_of_scope_redirect" in error_codes
 
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_in_scope_redirect_is_followed(boundary_server: BoundaryServer) -> None:
+async def test_in_scope_redirect_is_followed(
+    boundary_server: BoundaryServer,
+    tmp_path: Path,
+) -> None:
     """Scanner should follow in-scope redirects on the authorized host."""
     config = load_config()
     target_url = f"{boundary_server.base_url}/in-scope-redirect"
     target = Target(target_url)
 
-    context = ScanContext(
-        scan_id="20261001-boundary02",
-        target=target,
-        storage_root=Path("runs"),
+    context = create_scan_context(
+        tmp_path / "runs",
+        target,
         profile_name="safe",
-        started_at=None,
+        scanner_configuration={},
     )
 
     scanner = HeadersScanner(
         configuration=config,
         context=context,
-        target=target,
     )
 
     result = await scanner.run()
-    assert result.status == ScannerStatus.COMPLETED
-    assert result.artifacts.get("status_code") == 200
+    assert result.status == ScannerStatus.SUCCESS
+    assert result.output_paths
+    output_path = context.scan_directory / result.output_paths[0]
+    payload = json.loads(output_path.read_text(encoding="utf-8"))
+    assert payload.get("status_code") == 200
 
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_redirect_limit_enforced(boundary_server: BoundaryServer) -> None:
+async def test_redirect_limit_enforced(
+    boundary_server: BoundaryServer,
+    tmp_path: Path,
+) -> None:
     """Redirect loops must be cleanly terminated according to max_redirects config."""
     config = load_config()
     target_url = f"{boundary_server.base_url}/infinite-loop"
     target = Target(target_url)
 
-    context = ScanContext(
-        scan_id="20261001-boundary03",
-        target=target,
-        storage_root=Path("runs"),
+    context = create_scan_context(
+        tmp_path / "runs",
+        target,
         profile_name="safe",
-        started_at=None,
+        scanner_configuration={},
     )
 
     scanner = HeadersScanner(
         configuration=config,
         context=context,
-        target=target,
     )
 
     result = await scanner.run()
-    assert result.status in (ScannerStatus.FAILED, ScannerStatus.WARNING)
+    assert result.status == ScannerStatus.FAILED
     error_codes = [err.code for err in result.errors]
     assert "redirect_limit" in error_codes

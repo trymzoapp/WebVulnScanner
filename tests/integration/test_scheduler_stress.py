@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from webvulnscanner.core.context import ScanContext
+from webvulnscanner.core.context import ScanContext, create_scan_context
 from webvulnscanner.core.pipeline import (
     FailurePolicy,
     Pipeline,
@@ -79,18 +79,17 @@ class FastStage:
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_pipeline_cancellation_under_stress() -> None:
+async def test_pipeline_cancellation_under_stress(tmp_path: Path) -> None:
     """Cancelling a pipeline execution must cancel running stage tasks without leaking."""
     slow_stage = SlowStage(StageName.PASSIVE, duration=10.0)
     pipeline = Pipeline(stages=[slow_stage])
 
     target = Target("https://example.com")
-    context = ScanContext(
-        scan_id="20261001-cancel-stress",
-        target=target,
-        storage_root=Path("runs"),
+    context = create_scan_context(
+        tmp_path / "runs",
+        target,
         profile_name="safe",
-        started_at=None,
+        scanner_configuration={},
     )
 
     task = asyncio.create_task(pipeline.run(context))
@@ -108,12 +107,11 @@ async def test_concurrent_target_scans_isolation(tmp_path: Path) -> None:
     targets = [Target(f"https://target{i}.example.com") for i in range(4)]
 
     async def run_scan_for_target(t: Target, index: int) -> tuple[int, PipelineStatus]:
-        ctx = ScanContext(
-            scan_id=f"20261001-concurrent-{index}",
-            target=t,
-            storage_root=tmp_path / "runs",
+        ctx = create_scan_context(
+            tmp_path / f"runs_{index}",
+            t,
             profile_name="safe",
-            started_at=None,
+            scanner_configuration={},
         )
         pipe = Pipeline(
             stages=[
@@ -135,19 +133,18 @@ async def test_concurrent_target_scans_isolation(tmp_path: Path) -> None:
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_partial_pipeline_with_failing_stage() -> None:
+async def test_partial_pipeline_with_failing_stage(tmp_path: Path) -> None:
     """Failure in one stage when policy is CONTINUE does not abort subsequent independent stages."""
     stages = [
         FastStage(StageName.PASSIVE, succeed=False),
         FastStage(StageName.FINGERPRINT, succeed=True),
     ]
     pipeline = Pipeline(stages=stages)
-    context = ScanContext(
-        scan_id="20261001-partial-stress",
-        target=Target("https://example.com"),
-        storage_root=Path("runs"),
+    context = create_scan_context(
+        tmp_path / "runs",
+        Target("https://example.com"),
         profile_name="safe",
-        started_at=None,
+        scanner_configuration={},
     )
 
     result = await pipeline.run(context)

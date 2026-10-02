@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import sys
 import time
 
 import pytest
@@ -22,7 +23,7 @@ async def test_simultaneous_timeouts() -> None:
     )
 
     sleep_code = "import time; time.sleep(10)"
-    commands = [Command("python", ("-c", sleep_code)) for _ in range(6)]
+    commands = [Command(sys.executable, ("-c", sleep_code)) for _ in range(6)]
 
     start = time.monotonic()
     results = await asyncio.gather(*(runner.run(cmd) for cmd in commands))
@@ -47,7 +48,7 @@ async def test_subprocess_cancellation_cleans_up() -> None:
         termination_grace_seconds=0.2,
     )
 
-    sleep_cmd = Command("python", ("-c", "import time; time.sleep(10)"))
+    sleep_cmd = Command(sys.executable, ("-c", "import time; time.sleep(10)"))
     task = asyncio.create_task(runner.run(sleep_cmd))
 
     # Allow process to start
@@ -83,7 +84,7 @@ async def test_large_output_stream_bounding() -> None:
         "sys.stdout.flush()\n"
         "sys.stderr.flush()\n"
     )
-    cmd = Command("python", ("-c", script))
+    cmd = Command(sys.executable, ("-c", script))
 
     result = await runner.run(cmd)
     assert result.succeeded
@@ -104,7 +105,7 @@ async def test_concurrency_ceiling_enforced() -> None:
     )
 
     script = "import time; time.sleep(0.15)"
-    commands = [Command("python", ("-c", script)) for _ in range(8)]
+    commands = [Command(sys.executable, ("-c", script)) for _ in range(8)]
 
     results = await asyncio.gather(*(runner.run(cmd) for cmd in commands))
     assert len(results) == 8
@@ -123,7 +124,7 @@ async def test_nonzero_exit_with_error_capture() -> None:
     )
 
     script = "import sys; sys.stderr.write('critical tool error\\n'); sys.exit(7)"
-    cmd = Command("python", ("-c", script))
+    cmd = Command(sys.executable, ("-c", script))
 
     result = await runner.run(cmd)
     assert result.succeeded is False
