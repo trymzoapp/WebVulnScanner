@@ -268,20 +268,24 @@ def _execution_summary(
 
 def _add_configuration_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
+        "-p",
         "--profile",
         help="configuration profile name (default: safe)",
     )
     parser.add_argument(
+        "-c",
         "--config",
         type=Path,
         help="optional user YAML configuration file",
     )
     parser.add_argument(
+        "-o",
         "--storage-root",
         type=Path,
         help="override the scan result storage root",
     )
     parser.add_argument(
+        "-t",
         "--timeout",
         type=int,
         help="override the default scanner timeout in seconds",

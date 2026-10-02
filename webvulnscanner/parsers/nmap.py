@@ -23,7 +23,7 @@ class NmapParser(BaseParser[WebService]):
     def parse(self, parser_input: ParserInput) -> ParseResult[ServiceObservation]:
         content = parser_input.content
         lowered = content.casefold()
-        if "<!doctype" in lowered or "<!entity" in lowered:
+        if "<!entity" in lowered or ("<!doctype" in lowered and "[" in lowered):
             raise self.parsing_error("Nmap XML contains prohibited declarations")
         try:
             root = ET.fromstring(content)

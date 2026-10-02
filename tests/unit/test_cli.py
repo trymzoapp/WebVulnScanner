@@ -182,3 +182,37 @@ def test_no_bypass_or_destructive_options_are_exposed(
     help_text = capsys.readouterr().out.casefold()
     for prohibited in ("bypass", "destructive", "tamper", "evasion"):
         assert prohibited not in help_text
+
+
+def test_short_cli_flags_are_supported(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    storage = tmp_path / "short-runs"
+
+    async def forbidden_subprocess(*args: object, **kwargs: object) -> None:
+        raise AssertionError("injected empty pipeline must not launch subprocesses")
+
+    monkeypatch.setattr(asyncio, "create_subprocess_exec", forbidden_subprocess)
+
+    exit_code = main(
+        [
+            "scan",
+            "https://example.com",
+            "-y",
+            "-p",
+            "safe",
+            "-o",
+            str(storage),
+            "-t",
+            "30",
+        ],
+        pipeline_factory=lambda configuration, runner: Pipeline(()),
+    )
+
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == EXIT_SUCCESS
+    assert payload["status"] == "completed"
+    assert Path(payload["scan_directory"]).is_relative_to(storage)
