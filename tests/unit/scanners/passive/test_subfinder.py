@@ -2,7 +2,7 @@
 
 import asyncio
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from webvulnscanner.config.loader import load_config
@@ -13,14 +13,8 @@ from webvulnscanner.models.target import Target
 from webvulnscanner.scanners.passive.subfinder import SubfinderScanner
 from webvulnscanner.utils.command import Command
 
-
-NOW = datetime(2026, 9, 29, 12, 0, tzinfo=timezone.utc)
-FIXTURE = (
-    Path(__file__).resolve().parents[3]
-    / "fixtures"
-    / "subfinder"
-    / "mixed.jsonl"
-)
+NOW = datetime(2026, 9, 29, 12, 0, tzinfo=UTC)
+FIXTURE = Path(__file__).resolve().parents[3] / "fixtures" / "subfinder" / "mixed.jsonl"
 
 
 def result(
@@ -106,9 +100,9 @@ def test_success_checks_version_requests_jsonl_and_writes_scoped_output(
         "2",
     )
     payload = json.loads(
-        (
-            instance.context.scan_directory / "passive" / "subfinder.json"
-        ).read_text(encoding="utf-8")
+        (instance.context.scan_directory / "passive" / "subfinder.json").read_text(
+            encoding="utf-8"
+        )
     )
     assert payload["subdomains"] == ["api.example.com", "mobile.example.com"]
     assert payload["count"] == 2

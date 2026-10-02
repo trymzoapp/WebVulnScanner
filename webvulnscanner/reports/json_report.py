@@ -9,7 +9,6 @@ from webvulnscanner.core.context import ScanContext
 from webvulnscanner.models.report import AggregateScanReport
 from webvulnscanner.utils.filesystem import atomic_write_json
 
-
 SCHEMA_VERSION = "1.0"
 
 

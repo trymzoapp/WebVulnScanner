@@ -2,7 +2,7 @@
 
 import asyncio
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from webvulnscanner.config.loader import load_config
@@ -13,8 +13,7 @@ from webvulnscanner.models.target import Target
 from webvulnscanner.scanners.discovery.dirsearch import DirsearchScanner
 from webvulnscanner.utils.command import Command
 
-
-NOW = datetime(2026, 9, 29, 12, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 9, 29, 12, 0, tzinfo=UTC)
 
 
 def process(
@@ -114,9 +113,9 @@ def test_json_output_command_and_common_resource_persistence(
     assert "--recursive" not in command
     assert result.artifacts["urls"] == ("https://example.com/admin",)
     payload = json.loads(
-        (
-            instance.context.scan_directory / "discovery" / "dirsearch.json"
-        ).read_text(encoding="utf-8")
+        (instance.context.scan_directory / "discovery" / "dirsearch.json").read_text(
+            encoding="utf-8"
+        )
     )
     assert payload["resources"][0]["source"] == "dirsearch"
     assert len(payload["warnings"]) == 1

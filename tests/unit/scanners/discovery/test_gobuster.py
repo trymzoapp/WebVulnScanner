@@ -2,7 +2,7 @@
 
 import asyncio
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from webvulnscanner.config.loader import load_config
@@ -13,8 +13,7 @@ from webvulnscanner.models.target import Target
 from webvulnscanner.scanners.discovery.gobuster import GobusterScanner
 from webvulnscanner.utils.command import Command
 
-
-NOW = datetime(2026, 9, 29, 12, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 9, 29, 12, 0, tzinfo=UTC)
 
 
 def process(
@@ -87,10 +86,7 @@ def scanner(
 def test_safe_command_parses_and_persists_resources(tmp_path: Path) -> None:
     runner = FakeRunner(
         process("3.6"),
-        process(
-            "/admin (Status: 200) [Size: 42]\n"
-            "/login (Status: 403) [Size: 0]\n"
-        ),
+        process("/admin (Status: 200) [Size: 42]\n/login (Status: 403) [Size: 0]\n"),
     )
     instance = scanner(tmp_path, runner)
 
@@ -112,9 +108,9 @@ def test_safe_command_parses_and_persists_resources(tmp_path: Path) -> None:
         "https://example.com/login",
     )
     payload = json.loads(
-        (
-            instance.context.scan_directory / "discovery" / "gobuster.json"
-        ).read_text(encoding="utf-8")
+        (instance.context.scan_directory / "discovery" / "gobuster.json").read_text(
+            encoding="utf-8"
+        )
     )
     assert payload["count"] == 2
 

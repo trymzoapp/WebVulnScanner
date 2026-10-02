@@ -10,12 +10,11 @@ from urllib.parse import SplitResult, urlsplit, urlunsplit
 
 from webvulnscanner.core.exceptions import TargetValidationError
 
-
 TargetKindValue = Literal["hostname", "ipv4", "ipv6"]
 
 _DNS_LABEL = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$")
 _SUPPORTED_SCHEMES = frozenset({"http", "https"})
-_UNSAFE_INPUT = re.compile(r"[\x00-\x20\x7f\\]")
+_UNSAFE_INPUT = re.compile(r"[\x00-\x20\x7f\\;\|`$<>]")
 
 
 @dataclass(frozen=True, slots=True)
@@ -39,6 +38,8 @@ def validate_target(
     """Validate and canonicalize one HTTP(S), hostname, IPv4, or IPv6 target."""
     if not isinstance(value, str) or not value:
         raise _invalid("target must be a non-empty string")
+    if value.strip().startswith("-"):
+        raise _invalid("target must not start with a hyphen or CLI flag")
     if _UNSAFE_INPUT.search(value):
         raise _invalid("target contains whitespace, control characters, or backslashes")
 
@@ -65,9 +66,7 @@ def validate_target(
     canonical_host, kind = _canonicalize_host(parsed.hostname)
     netloc = _format_netloc(canonical_host, kind, port)
     path = parsed.path or "/"
-    canonical_url = urlunsplit(
-        (parsed_scheme, netloc, path, parsed.query, "")
-    )
+    canonical_url = urlunsplit((parsed_scheme, netloc, path, parsed.query, ""))
 
     return ValidatedTarget(
         original=value,
@@ -91,7 +90,9 @@ def _validated_port(parsed: SplitResult) -> int | None:
     try:
         port = parsed.port
     except ValueError as error:
-        raise _invalid("target port is malformed or outside 1-65535", cause=error) from error
+        raise _invalid(
+            "target port is malformed or outside 1-65535", cause=error
+        ) from error
     if port is not None and not 1 <= port <= 65535:
         raise _invalid("target port must be between 1 and 65535")
     return port
@@ -128,7 +129,9 @@ def _canonicalize_hostname(host: str) -> str:
     try:
         ascii_hostname = hostname.encode("idna").decode("ascii").casefold()
     except UnicodeError as error:
-        raise _invalid("hostname contains invalid internationalized characters", cause=error) from error
+        raise _invalid(
+            "hostname contains invalid internationalized characters", cause=error
+        ) from error
 
     if len(ascii_hostname) > 253:
         raise _invalid("hostname exceeds 253 characters")

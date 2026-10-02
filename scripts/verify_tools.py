@@ -9,13 +9,13 @@ import re
 import shutil
 import subprocess
 import sys
-from dataclasses import asdict, dataclass
-from enum import Enum
-from pathlib import Path
-from typing import Any, Mapping
+from collections.abc import Mapping
+from dataclasses import dataclass
+from enum import StrEnum
+from typing import Any
 
 
-class ToolStatus(str, Enum):
+class ToolStatus(StrEnum):
     """External tool availability and version status."""
 
     AVAILABLE = "AVAILABLE"
@@ -81,7 +81,7 @@ DEFAULT_TOOLS: tuple[ToolSpec, ...] = (
         name="subfinder",
         executable="subfinder",
         version_args=("-version",),
-        version_regex=r"Subfinder Engine Version: v?([0-9]+\.[0-9]+(?:\.[0-9]+)?)",
+        version_regex=r"(?:Subfinder(?:\s+Engine)?(?:\s+Version)?|Current Version)[:\s]+v?([0-9]+\.[0-9]+(?:\.[0-9]+)?)",
         min_version="2.5.0",
         install_hint="go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest",
     ),
@@ -104,8 +104,8 @@ DEFAULT_TOOLS: tuple[ToolSpec, ...] = (
     ToolSpec(
         name="gobuster",
         executable="gobuster",
-        version_args=("version",),
-        version_regex=r"Gobuster v?([0-9]+\.[0-9]+(?:\.[0-9]+)?)",
+        version_args=("--version",),
+        version_regex=r"Gobuster(?:\s+version)?\s+v?([0-9]+\.[0-9]+(?:\.[0-9]+)?)",
         min_version="3.0.0",
         install_hint="go install github.com/OJ/gobuster/v3@latest",
     ),
@@ -121,7 +121,7 @@ DEFAULT_TOOLS: tuple[ToolSpec, ...] = (
         name="wpscan",
         executable="wpscan",
         version_args=("--version",),
-        version_regex=r"WPScan v?([0-9]+\.[0-9]+(?:\.[0-9]+)?)",
+        version_regex=r"(?:WPScan|WordPress Security Scanner|Current Version|Version)[:\s]+v?([0-9]+\.[0-9]+(?:\.[0-9]+)?)",
         min_version="3.8.0",
         install_hint="gem install wpscan / brew install wpscan",
     ),
@@ -129,7 +129,7 @@ DEFAULT_TOOLS: tuple[ToolSpec, ...] = (
         name="whois",
         executable="whois",
         version_args=("--version",),
-        version_regex=r"whois ([0-9]+\.[0-9]+)",
+        version_regex=r"(?:whois(?:\s+version)?|version)\s+v?([0-9]+\.[0-9]+(?:\.[0-9]+)?)",
         min_version=None,
         install_hint="apt install whois / brew install whois",
     ),
@@ -145,7 +145,9 @@ def _parse_version_tuple(version_str: str) -> tuple[int, ...]:
     return tuple(parts)
 
 
-def check_tool(spec: ToolSpec, executable_override: str | None = None) -> ToolCheckResult:
+def check_tool(
+    spec: ToolSpec, executable_override: str | None = None
+) -> ToolCheckResult:
     """Safely check an external executable's existence and version without network access."""
     exe_name = executable_override or spec.executable
     resolved_path = shutil.which(exe_name)
@@ -253,7 +255,9 @@ def format_table(results: list[ToolCheckResult]) -> str:
         for row in rows
     ]
 
-    missing = [r for r in results if r.status in (ToolStatus.MISSING, ToolStatus.INCOMPATIBLE)]
+    missing = [
+        r for r in results if r.status in (ToolStatus.MISSING, ToolStatus.INCOMPATIBLE)
+    ]
     hints = ""
     if missing:
         hints = "\n\nInstallation Guidance:\n" + "\n".join(

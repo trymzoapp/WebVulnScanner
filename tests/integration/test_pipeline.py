@@ -3,29 +3,26 @@
 from __future__ import annotations
 
 import json
-import os
+from collections.abc import Generator
 from pathlib import Path
-from typing import Generator
 
 import pytest
 import yaml
 
+from tests.fixtures.http import FixtureServer
+from tests.fixtures.tools import get_fake_tool_path
 from webvulnscanner.cli import (
     EXIT_FINDINGS_FOUND,
     EXIT_PARTIAL_COMPLETION,
-    EXIT_SUCCESS,
+    _build_pipeline,
     main,
 )
 from webvulnscanner.config.loader import load_config
 from webvulnscanner.core.context import ScanContextFactory
 from webvulnscanner.core.orchestrator import Orchestrator
-from webvulnscanner.core.pipeline import StageName
 from webvulnscanner.core.subprocess_runner import AsyncSubprocessRunner
 from webvulnscanner.models.report import ScanStatus
 from webvulnscanner.models.target import Target
-from webvulnscanner.cli import _build_pipeline
-from tests.fixtures.http import FixtureServer
-from tests.fixtures.tools import get_fake_tool_path
 
 
 @pytest.fixture
@@ -41,6 +38,7 @@ def mock_offline_wayback(
     http_server: FixtureServer,
 ) -> None:
     """Ensure Wayback collection is offline and deterministic."""
+
     async def mock_fetch(
         self: object,
         *,
@@ -206,7 +204,9 @@ def test_end_to_end_pipeline_success(
     monkeypatch.delenv("FAKE_TOOLS_FAIL", raising=False)
     monkeypatch.delenv("FAKE_TOOLS_TIMEOUT", raising=False)
 
-    config_path = create_pipeline_config(tmp_path, http_server, storage_root=storage_root)
+    config_path = create_pipeline_config(
+        tmp_path, http_server, storage_root=storage_root
+    )
     target_url = f"http://localhost:{http_server.port}"
 
     exit_code = main(
@@ -317,7 +317,9 @@ def test_end_to_end_pipeline_partial_failure(
     monkeypatch.setenv("FAKE_TOOLS_FAIL", "wappalyzer,nmap")
     monkeypatch.delenv("FAKE_TOOLS_TIMEOUT", raising=False)
 
-    config_path = create_pipeline_config(tmp_path, http_server, storage_root=storage_root)
+    config_path = create_pipeline_config(
+        tmp_path, http_server, storage_root=storage_root
+    )
     target_url = f"http://localhost:{http_server.port}"
 
     exit_code = main(
@@ -369,7 +371,9 @@ def test_end_to_end_pipeline_partial_discovery_failure(
     monkeypatch.setenv("FAKE_TOOLS_FAIL", "gobuster,dirsearch")
     monkeypatch.delenv("FAKE_TOOLS_TIMEOUT", raising=False)
 
-    config_path = create_pipeline_config(tmp_path, http_server, storage_root=storage_root)
+    config_path = create_pipeline_config(
+        tmp_path, http_server, storage_root=storage_root
+    )
     target_url = f"http://localhost:{http_server.port}"
 
     exit_code = main(
@@ -406,7 +410,9 @@ async def test_end_to_end_direct_orchestrator(
     monkeypatch.delenv("FAKE_TOOLS_FAIL", raising=False)
     monkeypatch.delenv("FAKE_TOOLS_TIMEOUT", raising=False)
 
-    config_path = create_pipeline_config(tmp_path, http_server, storage_root=storage_root)
+    config_path = create_pipeline_config(
+        tmp_path, http_server, storage_root=storage_root
+    )
     config = load_config(user_config=config_path)
 
     runner = AsyncSubprocessRunner(

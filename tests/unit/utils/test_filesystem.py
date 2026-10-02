@@ -41,7 +41,9 @@ def test_storage_root_itself_requires_explicit_permission(tmp_path: Path) -> Non
     with pytest.raises(StorageError, match="below"):
         resolve_within_root(tmp_path, tmp_path)
 
-    assert resolve_within_root(tmp_path, tmp_path, allow_root=True) == tmp_path.resolve()
+    assert (
+        resolve_within_root(tmp_path, tmp_path, allow_root=True) == tmp_path.resolve()
+    )
 
 
 def test_existing_symlink_cannot_redirect_output_outside_root(

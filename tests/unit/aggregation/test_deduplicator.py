@@ -1,15 +1,24 @@
 """Unit tests for finding deduplication."""
 
-import pytest
-
-from webvulnscanner.aggregation.deduplicator import FindingDeduplicator, canonicalize_resource
+from webvulnscanner.aggregation.deduplicator import (
+    FindingDeduplicator,
+    canonicalize_resource,
+)
 from webvulnscanner.models.finding import Finding, Severity
 
 
 def test_canonicalize_resource() -> None:
-    assert canonicalize_resource("https://example.com/page/") == "https://example.com/page"
-    assert canonicalize_resource("https://EXAMPLE.COM:443/test") == "https://example.com/test"
-    assert canonicalize_resource("http://example.com:8080/api/") == "http://example.com:8080/api"
+    assert (
+        canonicalize_resource("https://example.com/page/") == "https://example.com/page"
+    )
+    assert (
+        canonicalize_resource("https://EXAMPLE.COM:443/test")
+        == "https://example.com/test"
+    )
+    assert (
+        canonicalize_resource("http://example.com:8080/api/")
+        == "http://example.com:8080/api"
+    )
 
 
 def test_deduplicator_merges_exact_duplicates() -> None:

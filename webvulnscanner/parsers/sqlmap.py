@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import re
-from typing import Any, Mapping
+from collections.abc import Mapping
 
 from webvulnscanner.models.finding import Finding, Severity
 from webvulnscanner.parsers.base import BaseParser, ParseResult, ParserInput
@@ -54,8 +54,14 @@ class SQLmapParser(BaseParser[Finding]):
                         rule_id="sql-injection",
                         parameter=param_clean,
                         description=f"Confirmed {type_clean} SQL injection vulnerability in {place_clean} parameter '{param_clean}'.",
-                        evidence=(f"Parameter: {param_clean}", f"Type: {type_clean}", f"Place: {place_clean}"),
-                        references=("https://owasp.org/www-community/attacks/SQL_Injection",),
+                        evidence=(
+                            f"Parameter: {param_clean}",
+                            f"Type: {type_clean}",
+                            f"Place: {place_clean}",
+                        ),
+                        references=(
+                            "https://owasp.org/www-community/attacks/SQL_Injection",
+                        ),
                     )
                     findings.append(finding)
             elif "is vulnerable" in stdout or "dbms:" in stdout.lower():
@@ -67,7 +73,9 @@ class SQLmapParser(BaseParser[Finding]):
                     rule_id="sql-injection",
                     description="SQLmap identified dynamic SQL injection vulnerability.",
                     evidence=("SQL injection confirmed by SQLmap execution",),
-                    references=("https://owasp.org/www-community/attacks/SQL_Injection",),
+                    references=(
+                        "https://owasp.org/www-community/attacks/SQL_Injection",
+                    ),
                 )
                 findings.append(finding)
         else:

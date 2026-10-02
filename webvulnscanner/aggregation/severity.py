@@ -7,7 +7,6 @@ from typing import Any
 
 from webvulnscanner.models.finding import Severity
 
-
 _LABEL_MAP: dict[str, Severity] = {
     "info": Severity.INFO,
     "informational": Severity.INFO,

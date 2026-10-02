@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import json
 import threading
+from collections.abc import Generator
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from typing import Generator
 from urllib.parse import urlparse
 
 import pytest
@@ -45,7 +44,9 @@ class RedirectBoundaryHandler(BaseHTTPRequestHandler):
         if path == "/cross-domain-redirect":
             self.send_response(302)
             # Malicious redirect attempting to take scanner out of scope
-            self.send_header("Location", "https://unauthorized-evil-domain.com/token-leak")
+            self.send_header(
+                "Location", "https://unauthorized-evil-domain.com/token-leak"
+            )
             self.end_headers()
             return
 
@@ -92,7 +93,9 @@ def boundary_server() -> Generator[BoundaryServer, None, None]:
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_cross_domain_redirect_is_blocked(boundary_server: BoundaryServer) -> None:
+async def test_cross_domain_redirect_is_blocked(
+    boundary_server: BoundaryServer,
+) -> None:
     """Scanner must halt on cross-domain redirect and not access out-of-scope targets."""
     config = load_config()
     target_url = f"{boundary_server.base_url}/cross-domain-redirect"

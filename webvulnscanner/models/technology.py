@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any, Mapping
+from typing import Any
 
 
 @dataclass(frozen=True, slots=True)
@@ -59,7 +60,9 @@ class Technology:
         if not isinstance(data, Mapping):
             raise TypeError("serialized technology must be a mapping")
         if set(data) != expected:
-            raise ValueError("serialized technology fields do not match the expected schema")
+            raise ValueError(
+                "serialized technology fields do not match the expected schema"
+            )
         return cls(
             name=data["name"],
             source=data["source"],

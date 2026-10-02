@@ -9,8 +9,8 @@ from webvulnscanner.config.loader import AppConfig
 from webvulnscanner.core.context import ScanContext
 from webvulnscanner.core.exceptions import ScannerValidationError
 from webvulnscanner.core.subprocess_runner import SubprocessResult
-from webvulnscanner.models.technology import Technology
 from webvulnscanner.models.service import WebService
+from webvulnscanner.models.technology import Technology
 from webvulnscanner.parsers.base import ParserInput
 from webvulnscanner.parsers.nmap import NmapParser
 from webvulnscanner.scanners.base import (
@@ -109,16 +109,12 @@ class NmapScanner(BaseScanner):
         )
         return ScannerOutput(
             technologies=technologies,
-            output_paths=(
-                output.relative_to(self.context.scan_directory).as_posix(),
-            ),
+            output_paths=(output.relative_to(self.context.scan_directory).as_posix(),),
             artifacts={
                 "services": services,
                 "web_services": web_services,
                 "urls": tuple(
-                    item.web_url
-                    for item in parsed.items
-                    if item.web_url is not None
+                    item.web_url for item in parsed.items if item.web_url is not None
                 ),
             },
         )

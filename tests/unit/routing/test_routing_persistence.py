@@ -1,7 +1,6 @@
 """Unit tests for routing decision persistence, logging, and stage execution."""
 
 import json
-import logging
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -10,8 +9,8 @@ import pytest
 from webvulnscanner.core.context import create_scan_context, write_routing_decisions
 from webvulnscanner.core.pipeline import StageName, StageOutcome, StageStatus
 from webvulnscanner.models.scan_result import RoutingDecision
-from webvulnscanner.models.technology import Technology
 from webvulnscanner.models.target import Target
+from webvulnscanner.models.technology import Technology
 from webvulnscanner.routing.stage import RoutingStage
 from webvulnscanner.utils.time import utc_now
 

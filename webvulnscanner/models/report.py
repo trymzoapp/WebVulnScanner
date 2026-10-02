@@ -3,16 +3,17 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from types import MappingProxyType
-from typing import Any, Mapping
+from typing import Any
 
 from webvulnscanner.utils.time import as_utc, format_utc
 
 
-class ScanStatus(str, Enum):
+class ScanStatus(StrEnum):
     """Lifecycle state persisted in scan metadata."""
 
     RUNNING = "running"
@@ -82,7 +83,9 @@ class ScanMetadata:
         )
         if not isinstance(self.errors, tuple):
             raise TypeError("errors must be a tuple of strings")
-        if any(not isinstance(error, str) or not error.strip() for error in self.errors):
+        if any(
+            not isinstance(error, str) or not error.strip() for error in self.errors
+        ):
             raise ValueError("errors must contain only non-empty strings")
 
     def to_dict(self) -> dict[str, Any]:
@@ -109,9 +112,7 @@ def _require_text(name: str, value: object) -> None:
 
 
 def _freeze_mapping(name: str, value: object) -> Mapping[str, object]:
-    if not isinstance(value, Mapping) or any(
-        not isinstance(key, str) for key in value
-    ):
+    if not isinstance(value, Mapping) or any(not isinstance(key, str) for key in value):
         raise TypeError(f"{name} must be a string-keyed mapping")
     return MappingProxyType(
         {str(key): _freeze_json(item, f"{name}.{key}") for key, item in value.items()}
@@ -129,8 +130,7 @@ def _freeze_json(value: object, name: str) -> object:
         return _freeze_mapping(name, value)
     if isinstance(value, (list, tuple)):
         return tuple(
-            _freeze_json(item, f"{name}[{index}]")
-            for index, item in enumerate(value)
+            _freeze_json(item, f"{name}[{index}]") for index, item in enumerate(value)
         )
     raise TypeError(f"{name} contains a non-JSON-compatible value")
 

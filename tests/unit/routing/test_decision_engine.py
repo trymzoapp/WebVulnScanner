@@ -2,7 +2,6 @@
 
 import pytest
 
-from webvulnscanner.models.scan_result import RoutingDecision
 from webvulnscanner.models.service import WebService
 from webvulnscanner.models.technology import Technology
 from webvulnscanner.routing.decision_engine import RoutingDecisionEngine
@@ -126,5 +125,7 @@ def test_engine_invalid_inputs() -> None:
     with pytest.raises(TypeError, match="context must be a RoutingContext"):
         RoutingDecisionEngine().evaluate("invalid")  # type: ignore[arg-type]
 
-    with pytest.raises(ValueError, match="target_scanners must contain only non-empty strings"):
+    with pytest.raises(
+        ValueError, match="target_scanners must contain only non-empty strings"
+    ):
         RoutingDecisionEngine(target_scanners=[""])

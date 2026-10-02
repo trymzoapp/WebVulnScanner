@@ -2,7 +2,7 @@
 
 import asyncio
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -18,8 +18,7 @@ from webvulnscanner.parsers.base import BaseParser, ParseResult, ParserInput
 from webvulnscanner.scanners.base import BaseScanner, ScannerOutput
 from webvulnscanner.utils.command import Command
 
-
-NOW = datetime(2026, 9, 29, 12, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 9, 29, 12, 0, tzinfo=UTC)
 
 
 class JsonListParser(BaseParser[int]):
@@ -146,9 +145,7 @@ def test_dependencies_are_injected_and_lifecycle_order_is_deterministic(
 
 def test_disabled_scanner_returns_skipped_without_execution(tmp_path: Path) -> None:
     runner = FakeRunner(process_result())
-    configuration = load_config(
-        overrides={"scanners": {"headers": {"enabled": False}}}
-    )
+    configuration = load_config(overrides={"scanners": {"headers": {"enabled": False}}})
     instance = scanner(
         tmp_path,
         runner=runner,

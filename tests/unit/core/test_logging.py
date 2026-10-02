@@ -17,11 +17,7 @@ from webvulnscanner.core.logging import (
 
 
 def json_records(stream: io.StringIO) -> list[dict[str, Any]]:
-    return [
-        json.loads(line)
-        for line in stream.getvalue().splitlines()
-        if line.strip()
-    ]
+    return [json.loads(line) for line in stream.getvalue().splitlines() if line.strip()]
 
 
 def test_human_log_contains_available_scan_context_and_event() -> None:
@@ -84,9 +80,10 @@ def test_json_log_contains_structured_context_and_utc_timestamp() -> None:
     assert record["status"] == "failed"
     assert record["exit_code"] == 2
     assert record["timestamp"].endswith("Z")
-    assert datetime.fromisoformat(
-        record["timestamp"].replace("Z", "+00:00")
-    ).tzinfo is not None
+    assert (
+        datetime.fromisoformat(record["timestamp"].replace("Z", "+00:00")).tzinfo
+        is not None
+    )
 
 
 def test_missing_context_fields_are_omitted() -> None:

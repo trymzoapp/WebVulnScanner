@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -14,15 +14,14 @@ from webvulnscanner.config.loader import AppConfig
 from webvulnscanner.core.context import ScanContext
 from webvulnscanner.core.pipeline import Pipeline
 from webvulnscanner.core.subprocess_runner import AsyncSubprocessRunner
-from webvulnscanner.models.scan_result import ScanResult, ScannerStatus
+from webvulnscanner.models.scan_result import ScannerStatus, ScanResult
 from webvulnscanner.models.technology import Technology
 from webvulnscanner.scanners.discovery import DiscoveryStage
 from webvulnscanner.scanners.fingerprint import FingerprintStage
 from webvulnscanner.scanners.passive import PassiveReconStage
 from webvulnscanner.utils.filesystem import atomic_write_json
 
-
-NOW = datetime(2026, 9, 30, 9, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 9, 30, 9, 0, tzinfo=UTC)
 
 
 class ArtifactScanner:
@@ -61,9 +60,7 @@ class ArtifactScanner:
             status=ScannerStatus.SUCCESS,
             started_at=NOW,
             completed_at=NOW,
-            output_paths=(
-                output.relative_to(self.context.scan_directory).as_posix(),
-            ),
+            output_paths=(output.relative_to(self.context.scan_directory).as_posix(),),
             technologies=self.technologies,
             artifacts=self.artifacts,
         )
@@ -237,9 +234,7 @@ def test_cli_executes_completed_stages_and_persists_artifacts(
     metadata = json.loads(
         (scan_directory / "metadata.json").read_text(encoding="utf-8")
     )
-    target = json.loads(
-        (scan_directory / "target.json").read_text(encoding="utf-8")
-    )
+    target = json.loads((scan_directory / "target.json").read_text(encoding="utf-8"))
     assert metadata["status"] == "completed"
     assert metadata["completed_at"] is not None
     assert target["url"] == "https://example.com/"

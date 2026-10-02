@@ -16,15 +16,15 @@ from webvulnscanner.core.pipeline import (
     StageStatus,
 )
 from webvulnscanner.core.scheduler import (
-    SchedulableScanner,
     ScannerScheduler,
+    SchedulableScanner,
 )
 from webvulnscanner.core.subprocess_runner import AsyncSubprocessRunner
 from webvulnscanner.models.discovery import DiscoveredResource
 from webvulnscanner.models.scan_result import (
     ScanError,
-    ScanResult,
     ScannerStatus,
+    ScanResult,
 )
 from webvulnscanner.models.target import Target
 from webvulnscanner.scanners.discovery.dirsearch import DirsearchScanner
@@ -32,7 +32,6 @@ from webvulnscanner.scanners.discovery.gobuster import GobusterScanner
 from webvulnscanner.scanners.fingerprint import FingerprintArtifacts
 from webvulnscanner.utils.filesystem import atomic_write_json
 from webvulnscanner.utils.time import as_utc, utc_now
-
 
 DISCOVERY_SCANNERS = ("gobuster", "dirsearch")
 DiscoveryScannerFactory = Callable[[ScanContext, str, str], SchedulableScanner]
@@ -51,7 +50,7 @@ class DiscoveryStage:
     """Run enabled discovery tools only for confirmed in-scope web services."""
 
     name = StageName.DISCOVERY
-    dependencies = (StageName.FINGERPRINT,)
+    dependencies: tuple[StageName, ...] = (StageName.FINGERPRINT,)
     failure_policy = FailurePolicy.CONTINUE
 
     def __init__(

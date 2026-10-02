@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 from collections.abc import Mapping, Sequence
 from typing import Any
 
@@ -15,7 +16,6 @@ from webvulnscanner.models.report import AggregateScanReport, SeveritySummary
 from webvulnscanner.models.scan_result import RoutingDecision, ScanResult
 from webvulnscanner.models.service import WebService
 from webvulnscanner.models.technology import Technology
-
 
 _SEVERITY_ORDER: dict[Severity, int] = {
     Severity.CRITICAL: 0,
@@ -47,7 +47,7 @@ class ResultAggregator:
         tool_statuses: dict[str, str] = {}
         all_errors: list[str] = list(context.metadata.errors)
 
-        for stage_name, outcome in stage_outcomes.items():
+        for _stage_name, outcome in stage_outcomes.items():
             all_errors.extend(outcome.errors)
             if not outcome.artifacts:
                 continue
@@ -103,16 +103,24 @@ class ResultAggregator:
         return AggregateScanReport(
             metadata=context.metadata,
             findings=sorted_findings,
-            technologies=tuple(sorted(set(technologies), key=lambda t: (t.name.casefold(), t.source))),
+            technologies=tuple(
+                sorted(set(technologies), key=lambda t: (t.name.casefold(), t.source))
+            ),
             services=tuple(sorted(set(services), key=lambda s: (s.host, s.port))),
-            discovered_resources=tuple(sorted(set(discovered_resources), key=lambda r: r.url)),
-            routing_decisions=tuple(sorted(set(routing_decisions), key=lambda d: d.scanner)),
+            discovered_resources=tuple(
+                sorted(set(discovered_resources), key=lambda r: r.url)
+            ),
+            routing_decisions=tuple(
+                sorted(set(routing_decisions), key=lambda d: d.scanner)
+            ),
             tool_statuses=tool_statuses,
             severity_summary=severity_summary,
             errors=tuple(dict.fromkeys(all_errors)),
         )
 
-    def _extract_findings(self, artifacts: Mapping[str, Any], output: list[Finding]) -> None:
+    def _extract_findings(
+        self, artifacts: Mapping[str, Any], output: list[Finding]
+    ) -> None:
         for key in ("findings", "vulnerability"):
             val = artifacts.get(key)
             if isinstance(val, (list, tuple)):
@@ -120,21 +128,25 @@ class ResultAggregator:
                     if isinstance(f, Finding):
                         output.append(f)
                     elif isinstance(f, Mapping):
-                        try:
+                        with contextlib.suppress(Exception):
                             output.append(Finding.from_dict(f))
-                        except Exception:
-                            pass
-            elif hasattr(val, "findings") and isinstance(val.findings, tuple):
-                for f in val.findings:
+            elif (findings_attr := getattr(val, "findings", None)) and isinstance(
+                findings_attr, tuple
+            ):
+                for f in findings_attr:
                     if isinstance(f, Finding):
                         output.append(f)
-            elif hasattr(val, "scanner_results") and isinstance(val.scanner_results, tuple):
-                for sr in val.scanner_results:
+            elif (sr_attr := getattr(val, "scanner_results", None)) and isinstance(
+                sr_attr, tuple
+            ):
+                for sr in sr_attr:
                     if isinstance(sr, ScanResult):
                         for f in sr.findings:
                             output.append(f)
 
-    def _extract_technologies(self, artifacts: Mapping[str, Any], output: list[Technology]) -> None:
+    def _extract_technologies(
+        self, artifacts: Mapping[str, Any], output: list[Technology]
+    ) -> None:
         for key in ("technologies", "fingerprint"):
             val = artifacts.get(key)
             if isinstance(val, (list, tuple)):
@@ -142,16 +154,18 @@ class ResultAggregator:
                     if isinstance(t, Technology):
                         output.append(t)
                     elif isinstance(t, Mapping):
-                        try:
+                        with contextlib.suppress(Exception):
                             output.append(Technology.from_dict(t))
-                        except Exception:
-                            pass
-            elif hasattr(val, "technologies") and isinstance(val.technologies, tuple):
-                for t in val.technologies:
+            elif (tech_attr := getattr(val, "technologies", None)) and isinstance(
+                tech_attr, tuple
+            ):
+                for t in tech_attr:
                     if isinstance(t, Technology):
                         output.append(t)
 
-    def _extract_services(self, artifacts: Mapping[str, Any], output: list[WebService]) -> None:
+    def _extract_services(
+        self, artifacts: Mapping[str, Any], output: list[WebService]
+    ) -> None:
         for key in ("services", "fingerprint"):
             val = artifacts.get(key)
             if isinstance(val, (list, tuple)):
@@ -159,16 +173,18 @@ class ResultAggregator:
                     if isinstance(s, WebService):
                         output.append(s)
                     elif isinstance(s, Mapping):
-                        try:
+                        with contextlib.suppress(Exception):
                             output.append(WebService.from_dict(s))
-                        except Exception:
-                            pass
-            elif hasattr(val, "services") and isinstance(val.services, tuple):
-                for s in val.services:
+            elif (serv_attr := getattr(val, "services", None)) and isinstance(
+                serv_attr, tuple
+            ):
+                for s in serv_attr:
                     if isinstance(s, WebService):
                         output.append(s)
 
-    def _extract_resources(self, artifacts: Mapping[str, Any], output: list[DiscoveredResource]) -> None:
+    def _extract_resources(
+        self, artifacts: Mapping[str, Any], output: list[DiscoveredResource]
+    ) -> None:
         for key in ("resources", "discovery"):
             val = artifacts.get(key)
             if isinstance(val, (list, tuple)):
@@ -176,32 +192,42 @@ class ResultAggregator:
                     if isinstance(r, DiscoveredResource):
                         output.append(r)
                     elif isinstance(r, Mapping):
-                        try:
+                        with contextlib.suppress(Exception):
                             output.append(DiscoveredResource.from_dict(r))
-                        except Exception:
-                            pass
-            elif hasattr(val, "resources") and isinstance(val.resources, tuple):
-                for r in val.resources:
+            elif (res_attr := getattr(val, "resources", None)) and isinstance(
+                res_attr, tuple
+            ):
+                for r in res_attr:
                     if isinstance(r, DiscoveredResource):
                         output.append(r)
 
-    def _extract_routing(self, artifacts: Mapping[str, Any], output: list[RoutingDecision]) -> None:
+    def _extract_routing(
+        self, artifacts: Mapping[str, Any], output: list[RoutingDecision]
+    ) -> None:
         raw = artifacts.get("decisions")
         if isinstance(raw, (list, tuple)):
             for d in raw:
                 if isinstance(d, RoutingDecision):
                     output.append(d)
                 elif isinstance(d, Mapping):
-                    try:
+                    with contextlib.suppress(TypeError, ValueError):
                         output.append(RoutingDecision.from_dict(d))
-                    except (TypeError, ValueError):
-                        pass
 
-    def _extract_tool_statuses(self, artifacts: Mapping[str, Any], output: dict[str, str]) -> None:
-        for key in ("scanner_results", "vulnerability", "discovery", "fingerprint", "passive"):
+    def _extract_tool_statuses(
+        self, artifacts: Mapping[str, Any], output: dict[str, str]
+    ) -> None:
+        for key in (
+            "scanner_results",
+            "vulnerability",
+            "discovery",
+            "fingerprint",
+            "passive",
+        ):
             val = artifacts.get(key)
-            if hasattr(val, "scanner_results") and isinstance(val.scanner_results, tuple):
-                for sr in val.scanner_results:
+            if (sr_attr := getattr(val, "scanner_results", None)) and isinstance(
+                sr_attr, tuple
+            ):
+                for sr in sr_attr:
                     if isinstance(sr, ScanResult):
                         output[sr.scanner] = sr.status.value
 

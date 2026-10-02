@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from io import StringIO
-from typing import Any, Mapping
+from typing import Any
 
 from webvulnscanner.models.finding import Finding, Severity
 from webvulnscanner.parsers.base import BaseParser, ParseResult, ParserInput

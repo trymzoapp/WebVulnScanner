@@ -2,8 +2,6 @@
 
 from pathlib import Path
 
-import pytest
-
 from webvulnscanner.models.finding import Severity
 from webvulnscanner.parsers.base import ParserInput
 from webvulnscanner.parsers.nuclei import NucleiParser

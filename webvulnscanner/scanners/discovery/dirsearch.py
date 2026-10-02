@@ -35,7 +35,9 @@ class DirsearchParser(BaseParser[DiscoveredResource]):
         try:
             payload = json.loads(parser_input.content)
         except json.JSONDecodeError as error:
-            raise self.parsing_error("Dirsearch output is not valid JSON", cause=error)
+            raise self.parsing_error(
+                "Dirsearch output is not valid JSON", cause=error
+            ) from error
         records = payload.get("results") if isinstance(payload, Mapping) else payload
         if not isinstance(records, list):
             raise self.parsing_error("Dirsearch JSON must contain a results array")
@@ -166,9 +168,7 @@ class DirsearchScanner(BaseScanner):
             overwrite=False,
         )
         return ScannerOutput(
-            output_paths=(
-                output.relative_to(self.context.scan_directory).as_posix(),
-            ),
+            output_paths=(output.relative_to(self.context.scan_directory).as_posix(),),
             artifacts={
                 "resources": tuple(item.to_dict() for item in parsed.items),
                 "urls": tuple(item.url for item in parsed.items),

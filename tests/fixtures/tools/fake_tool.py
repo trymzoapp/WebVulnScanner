@@ -35,8 +35,12 @@ def handle_subfinder(args: list[str]) -> None:
         if idx + 1 < len(args):
             domain = args[idx + 1]
 
-    print(json.dumps({"host": f"api.{domain}", "source": "fake-recon", "input": domain}))
-    print(json.dumps({"host": f"blog.{domain}", "source": "fake-recon", "input": domain}))
+    print(
+        json.dumps({"host": f"api.{domain}", "source": "fake-recon", "input": domain})
+    )
+    print(
+        json.dumps({"host": f"blog.{domain}", "source": "fake-recon", "input": domain})
+    )
 
 
 def handle_whois(args: list[str]) -> None:
@@ -63,11 +67,7 @@ def handle_wappalyzer(args: list[str]) -> None:
 
     url = args[0] if args else "https://example.com/"
     payload = {
-        "urls": {
-            url: {
-                "status": 200
-            }
-        },
+        "urls": {url: {"status": 200}},
         "technologies": [
             {
                 "slug": "wordpress",
@@ -76,16 +76,22 @@ def handle_wappalyzer(args: list[str]) -> None:
                 "version": "6.6",
                 "icon": "WordPress.svg",
                 "website": "https://wordpress.org",
-                "categories": [{"id": 1, "slug": "cms", "name": "CMS"}]
+                "categories": [{"id": 1, "slug": "cms", "name": "CMS"}],
             },
             {
                 "slug": "php",
                 "name": "PHP",
                 "confidence": 90,
                 "version": "8.2",
-                "categories": [{"id": 2, "slug": "programming-language", "name": "Programming languages"}]
-            }
-        ]
+                "categories": [
+                    {
+                        "id": 2,
+                        "slug": "programming-language",
+                        "name": "Programming languages",
+                    }
+                ],
+            },
+        ],
     }
     print(json.dumps(payload))
 
@@ -154,11 +160,7 @@ def handle_dirsearch(args: list[str]) -> None:
 
     payload = {
         "results": [
-            {
-                "url": f"{base_url}/dashboard",
-                "status": 200,
-                "content_length": 789
-            }
+            {"url": f"{base_url}/dashboard", "status": 200, "content_length": 789}
         ]
     }
     print(json.dumps(payload))
@@ -176,20 +178,24 @@ def handle_nuclei(args: list[str]) -> None:
         if idx + 1 < len(args):
             target = args[idx + 1]
 
-    finding_line = json.dumps({
-        "template-id": "cve-2023-9999",
-        "info": {
-            "name": "Fake CVE Vulnerability",
-            "severity": "high",
-            "description": "A severe mock vulnerability",
-            "reference": ["https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-9999"]
-        },
-        "type": "http",
-        "host": target,
-        "matched-at": f"{target.rstrip('/')}/admin",
-        "extracted-results": ["fake payload match"],
-        "timestamp": "2026-10-01T12:00:00Z"
-    })
+    finding_line = json.dumps(
+        {
+            "template-id": "cve-2023-9999",
+            "info": {
+                "name": "Fake CVE Vulnerability",
+                "severity": "high",
+                "description": "A severe mock vulnerability",
+                "reference": [
+                    "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-9999"
+                ],
+            },
+            "type": "http",
+            "host": target,
+            "matched-at": f"{target.rstrip('/')}/admin",
+            "extracted-results": ["fake payload match"],
+            "timestamp": "2026-10-01T12:00:00Z",
+        }
+    )
 
     if "-o" in args:
         idx = args.index("-o")
@@ -236,12 +242,10 @@ def handle_wpscan(args: list[str]) -> None:
                 {
                     "title": "WordPress <= 6.6 - Authenticated Stored XSS",
                     "fixed_in": "6.6.1",
-                    "references": {
-                        "cve": ["2024-9999"]
-                    }
+                    "references": {"cve": ["2024-9999"]},
                 }
-            ]
-        }
+            ],
+        },
     }
     print(json.dumps(payload))
 

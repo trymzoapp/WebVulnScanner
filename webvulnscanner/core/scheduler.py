@@ -10,7 +10,7 @@ from typing import Protocol
 
 from webvulnscanner.core.exceptions import WebVulnScannerError
 from webvulnscanner.core.logging import log_event
-from webvulnscanner.models.scan_result import ScanError, ScanResult, ScannerStatus
+from webvulnscanner.models.scan_result import ScanError, ScannerStatus, ScanResult
 from webvulnscanner.utils.time import as_utc, utc_now
 
 
@@ -31,7 +31,7 @@ class ScannerScheduler:
         *,
         max_concurrency: int,
         time_provider: Callable[[], datetime] = utc_now,
-        logger: logging.Logger | logging.LoggerAdapter | None = None,
+        logger: logging.Logger | logging.LoggerAdapter[logging.Logger] | None = None,
     ) -> None:
         if isinstance(max_concurrency, bool) or not isinstance(max_concurrency, int):
             raise TypeError("max_concurrency must be an integer")
@@ -58,9 +58,7 @@ class ScannerScheduler:
         """Schedule scanners and isolate ordinary scanner failures."""
         if isinstance(scanners, (str, bytes)) or not isinstance(scanners, Sequence):
             raise TypeError("scanners must be a sequence")
-        tasks = [
-            asyncio.create_task(self._run_one(scanner)) for scanner in scanners
-        ]
+        tasks = [asyncio.create_task(self._run_one(scanner)) for scanner in scanners]
         if not tasks:
             return ()
         try:

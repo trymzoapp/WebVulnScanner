@@ -2,7 +2,7 @@
 
 import asyncio
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -17,8 +17,7 @@ from webvulnscanner.scanners.passive.whois import (
     WhoisScanner,
 )
 
-
-NOW = datetime(2026, 9, 29, 12, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 9, 29, 12, 0, tzinfo=UTC)
 
 
 class FakeWhoisClient:
@@ -81,9 +80,9 @@ def test_success_normalizes_registration_fields(tmp_path: Path) -> None:
     assert result.status is ScannerStatus.SUCCESS
     assert client.calls == [("example.com", 60.0)]
     payload = json.loads(
-        (
-            instance.context.scan_directory / "passive" / "whois.json"
-        ).read_text(encoding="utf-8")
+        (instance.context.scan_directory / "passive" / "whois.json").read_text(
+            encoding="utf-8"
+        )
     )
     assert payload["registrar"] == "Example Registrar"
     assert payload["created_at"] == "2020-01-01T00:00:00Z"
@@ -100,9 +99,9 @@ def test_missing_fields_are_serialized_explicitly(tmp_path: Path) -> None:
 
     assert result.status is ScannerStatus.SUCCESS
     payload = json.loads(
-        (
-            instance.context.scan_directory / "passive" / "whois.json"
-        ).read_text(encoding="utf-8")
+        (instance.context.scan_directory / "passive" / "whois.json").read_text(
+            encoding="utf-8"
+        )
     )
     assert payload["registrar"] is None
     assert payload["created_at"] is None
@@ -137,9 +136,7 @@ def test_raw_lookup_failures_are_controlled(
 
     assert result.status is expected_status
     assert result.errors[0].code == expected_code
-    assert not (
-        instance.context.scan_directory / "passive" / "whois.json"
-    ).exists()
+    assert not (instance.context.scan_directory / "passive" / "whois.json").exists()
 
 
 def test_malformed_record_returns_controlled_failure(tmp_path: Path) -> None:

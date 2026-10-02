@@ -3,17 +3,18 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Mapping
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
+from datetime import UTC, datetime
+from enum import StrEnum
 from types import MappingProxyType
-from typing import Any, Mapping
+from typing import Any
 
 from webvulnscanner.models.finding import Finding
 from webvulnscanner.models.technology import Technology
 
 
-class ScannerStatus(str, Enum):
+class ScannerStatus(StrEnum):
     """Terminal state of one scanner execution."""
 
     SUCCESS = "success"
@@ -161,12 +162,18 @@ class ScanResult:
             if self.skip_reason is None:
                 raise ValueError("skipped scan results require a skip reason")
             if self.errors or self.findings or self.technologies:
-                raise ValueError("skipped scan results cannot contain results or errors")
+                raise ValueError(
+                    "skipped scan results cannot contain results or errors"
+                )
             if self.subprocess_details is not None:
-                raise ValueError("skipped scan results cannot contain subprocess details")
+                raise ValueError(
+                    "skipped scan results cannot contain subprocess details"
+                )
         else:
             if not self.errors:
-                raise ValueError("failed, timed-out, or cancelled results require an error")
+                raise ValueError(
+                    "failed, timed-out, or cancelled results require an error"
+                )
             if self.skip_reason is not None:
                 raise ValueError("non-skipped scan results cannot have a skip reason")
 
@@ -192,9 +199,7 @@ class ScanResult:
             "duration_seconds": self.duration_seconds,
             "output_paths": list(self.output_paths),
             "findings": [finding.to_dict() for finding in self.findings],
-            "technologies": [
-                technology.to_dict() for technology in self.technologies
-            ],
+            "technologies": [technology.to_dict() for technology in self.technologies],
             "errors": [error.to_dict() for error in self.errors],
             "subprocess_details": (
                 None
@@ -297,7 +302,7 @@ def _as_utc(name: str, value: object) -> datetime:
         raise TypeError(f"{name} must be a datetime")
     if value.tzinfo is None or value.utcoffset() is None:
         raise ValueError(f"{name} must be timezone-aware")
-    return value.astimezone(timezone.utc)
+    return value.astimezone(UTC)
 
 
 def _format_datetime(value: datetime) -> str:
@@ -345,9 +350,7 @@ def _json_text_list(name: str, value: object) -> tuple[str, ...]:
 
 
 def _freeze_artifact_mapping(value: object) -> Mapping[str, object]:
-    if not isinstance(value, Mapping) or any(
-        not isinstance(key, str) for key in value
-    ):
+    if not isinstance(value, Mapping) or any(not isinstance(key, str) for key in value):
         raise TypeError("artifacts must be a string-keyed mapping")
     return MappingProxyType(
         {str(key): _freeze_artifact(item) for key, item in value.items()}
@@ -441,4 +444,3 @@ class RoutingDecision:
                 "matched_evidence", data["matched_evidence"]
             ),
         )
-

@@ -97,6 +97,10 @@ class Orchestrator:
             )
             raise
         except Exception:
+            pipeline_result = None
+
+        pipeline_errors: tuple[str, ...]
+        if pipeline_result is None:
             pipeline_result = PipelineResult(
                 status=PipelineStatus.FAILED,
                 outcomes=(),

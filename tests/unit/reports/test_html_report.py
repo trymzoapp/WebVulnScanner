@@ -3,8 +3,6 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-import pytest
-
 from webvulnscanner.aggregation.aggregator import ResultAggregator
 from webvulnscanner.core.context import create_scan_context
 from webvulnscanner.models.finding import Finding, Severity

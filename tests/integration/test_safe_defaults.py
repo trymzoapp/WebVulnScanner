@@ -40,7 +40,9 @@ def test_safe_profile_defaults_and_safety_envelope() -> None:
     # 4. Fingerprint timing and discovery depth must be conservative
     assert config.fingerprint.timing_template <= 2
     assert config.fingerprint.host_timeout_seconds <= 300
-    assert config.discovery.max_recursion_depth == 0  # no deep recursive crawlers by default
+    assert (
+        config.discovery.max_recursion_depth == 0
+    )  # no deep recursive crawlers by default
 
     # 5. HTTP timeouts and boundaries
     assert config.http.max_redirects <= 5

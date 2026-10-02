@@ -7,7 +7,6 @@ from urllib.parse import urlparse
 
 from webvulnscanner.models.finding import Finding, Severity
 
-
 _SEVERITY_RANK: dict[Severity, int] = {
     Severity.CRITICAL: 5,
     Severity.HIGH: 4,
@@ -28,11 +27,17 @@ def canonicalize_resource(resource: str) -> str:
     path = parsed.path or "/"
     if path != "/" and path.endswith("/"):
         path = path.rstrip("/")
-    port_part = f":{parsed.port}" if parsed.port and (
-        (parsed.scheme == "http" and parsed.port != 80) or
-        (parsed.scheme == "https" and parsed.port != 443)
-    ) else ""
-    return f"{parsed.scheme}://{parsed.hostname.lower()}{port_part}{path}"
+    port_part = (
+        f":{parsed.port}"
+        if parsed.port
+        and (
+            (parsed.scheme == "http" and parsed.port != 80)
+            or (parsed.scheme == "https" and parsed.port != 443)
+        )
+        else ""
+    )
+    hostname = (parsed.hostname or "").lower()
+    return f"{parsed.scheme}://{hostname}{port_part}{path}"
 
 
 class FindingDeduplicator:
@@ -65,7 +70,9 @@ class FindingDeduplicator:
             return group[0]
 
         # Highest severity wins
-        highest_severity = max(group, key=lambda f: _SEVERITY_RANK.get(f.severity, 0)).severity
+        highest_severity = max(
+            group, key=lambda f: _SEVERITY_RANK.get(f.severity, 0)
+        ).severity
 
         # Combine source scanners deterministically
         scanners = sorted({f.source_scanner for f in group})

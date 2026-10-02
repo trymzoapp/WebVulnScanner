@@ -2,7 +2,7 @@
 
 import asyncio
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -19,8 +19,7 @@ from webvulnscanner.scanners.passive.headers import (
     HttpResponseData,
 )
 
-
-NOW = datetime(2026, 9, 29, 12, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 9, 29, 12, 0, tzinfo=UTC)
 
 
 class FakeHttpClient:
@@ -143,9 +142,9 @@ def test_redirect_chain_is_bounded_recorded_and_get_only(tmp_path: Path) -> None
     assert [request.method for request in client.requests] == ["GET", "GET"]
     assert client.requests[1].url == "https://example.com/login"
     payload = json.loads(
-        (
-            instance.context.scan_directory / "passive" / "headers.json"
-        ).read_text(encoding="utf-8")
+        (instance.context.scan_directory / "passive" / "headers.json").read_text(
+            encoding="utf-8"
+        )
     )
     assert payload["final_url"] == "https://example.com/login"
     assert payload["redirect_chain"] == [
@@ -176,9 +175,9 @@ def test_cookie_and_authorization_values_are_never_persisted(
     result = asyncio.run(instance.run())
 
     assert result.status is ScannerStatus.SUCCESS
-    output = (
-        instance.context.scan_directory / "passive" / "headers.json"
-    ).read_text(encoding="utf-8")
+    output = (instance.context.scan_directory / "passive" / "headers.json").read_text(
+        encoding="utf-8"
+    )
     payload = json.loads(output)
     assert payload["cookies"] == {
         "set_cookie_count": 2,
@@ -229,9 +228,7 @@ def test_network_failures_return_controlled_results_without_artifacts(
     assert result.status is expected_status
     assert result.errors[0].code == expected_code
     assert result.output_paths == ()
-    assert not (
-        instance.context.scan_directory / "passive" / "headers.json"
-    ).exists()
+    assert not (instance.context.scan_directory / "passive" / "headers.json").exists()
 
 
 def test_redirect_limit_returns_controlled_failure(tmp_path: Path) -> None:

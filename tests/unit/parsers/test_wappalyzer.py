@@ -8,7 +8,6 @@ from webvulnscanner.core.exceptions import ParsingError
 from webvulnscanner.parsers.base import ParserInput
 from webvulnscanner.parsers.wappalyzer import WappalyzerParser
 
-
 FIXTURE = (
     Path(__file__).resolve().parents[2]
     / "fixtures"
@@ -18,9 +17,7 @@ FIXTURE = (
 
 
 def test_parses_normalizes_and_warns_for_partial_output() -> None:
-    parsed = WappalyzerParser().parse(
-        ParserInput(FIXTURE.read_text(encoding="utf-8"))
-    )
+    parsed = WappalyzerParser().parse(ParserInput(FIXTURE.read_text(encoding="utf-8")))
 
     assert [item.name for item in parsed.items] == ["PHP", "WordPress"]
     assert parsed.items[0].confidence == 0.8

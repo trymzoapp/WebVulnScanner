@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import math
 import time
@@ -42,7 +43,7 @@ class AsyncSubprocessRunner:
         default_timeout: float,
         max_output_bytes: int = 1_048_576,
         termination_grace_seconds: float = 1.0,
-        logger: logging.Logger | logging.LoggerAdapter | None = None,
+        logger: logging.Logger | logging.LoggerAdapter[logging.Logger] | None = None,
         monotonic: Callable[[], float] = time.monotonic,
     ) -> None:
         if isinstance(max_concurrency, bool) or not isinstance(max_concurrency, int):
@@ -81,9 +82,7 @@ class AsyncSubprocessRunner:
     ) -> SubprocessResult:
         """Execute a command and return a bounded result for every exit status."""
         normalized = (
-            command
-            if isinstance(command, Command)
-            else Command.from_sequence(command)
+            command if isinstance(command, Command) else Command.from_sequence(command)
         )
         effective_timeout = self._default_timeout if timeout is None else timeout
         _positive_finite("timeout", effective_timeout)
@@ -117,9 +116,7 @@ class AsyncSubprocessRunner:
                 *command.argv,
                 cwd=None if command.cwd is None else str(command.cwd),
                 env=(
-                    None
-                    if command.environment is None
-                    else dict(command.environment)
+                    None if command.environment is None else dict(command.environment)
                 ),
                 stdin=asyncio.subprocess.DEVNULL,
                 stdout=asyncio.subprocess.PIPE,
@@ -146,7 +143,7 @@ class AsyncSubprocessRunner:
         timed_out = False
         try:
             await asyncio.wait_for(process.wait(), timeout=timeout)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             timed_out = True
             await self._stop_process(process)
         except asyncio.CancelledError:
@@ -219,11 +216,9 @@ class AsyncSubprocessRunner:
                 process.wait(),
                 timeout=self._termination_grace_seconds,
             )
-        except asyncio.TimeoutError:
-            try:
+        except TimeoutError:
+            with contextlib.suppress(ProcessLookupError):
                 process.kill()
-            except ProcessLookupError:
-                pass
             await process.wait()
 
     def _log(

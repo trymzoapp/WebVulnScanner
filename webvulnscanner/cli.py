@@ -15,7 +15,7 @@ from webvulnscanner.config.loader import AppConfig, load_config
 from webvulnscanner.core.context import ScanContextFactory
 from webvulnscanner.core.exceptions import ConfigurationError, TargetValidationError
 from webvulnscanner.core.orchestrator import OrchestrationResult, Orchestrator
-from webvulnscanner.core.pipeline import Pipeline, StageName
+from webvulnscanner.core.pipeline import Pipeline, PipelineStage, StageName
 from webvulnscanner.core.subprocess_runner import AsyncSubprocessRunner
 from webvulnscanner.models.report import ScanStatus
 from webvulnscanner.models.target import Target
@@ -25,7 +25,6 @@ from webvulnscanner.scanners.discovery import create_discovery_stage
 from webvulnscanner.scanners.fingerprint import create_fingerprint_stage
 from webvulnscanner.scanners.passive import create_passive_stage
 from webvulnscanner.scanners.vulnerability import create_vulnerability_stage
-
 
 EXIT_SUCCESS = 0
 EXIT_FINDINGS_FOUND = 1
@@ -42,9 +41,7 @@ def build_parser() -> argparse.ArgumentParser:
     """Build the CLI parser without performing filesystem or process work."""
     parser = argparse.ArgumentParser(
         prog="webvulnscanner",
-        description=(
-            "Run authorized, non-destructive web vulnerability assessments."
-        ),
+        description=("Run authorized, non-destructive web vulnerability assessments."),
         epilog=(
             "Use only against assets you own or have explicit permission to assess."
         ),
@@ -165,30 +162,29 @@ def _build_pipeline(
     runner: AsyncSubprocessRunner,
 ) -> Pipeline:
     """Assemble all pipeline stages (passive, fingerprint, routing, discovery, vulnerability, report)."""
-    return Pipeline(
-        (
-            create_passive_stage(
-                configuration=configuration,
-                subprocess_runner=runner,
-            ),
-            create_fingerprint_stage(
-                configuration=configuration,
-                subprocess_runner=runner,
-            ),
-            RoutingStage(),
-            create_discovery_stage(
-                configuration=configuration,
-                subprocess_runner=runner,
-            ),
-            create_vulnerability_stage(
-                configuration=configuration,
-                subprocess_runner=runner,
-            ),
-            ReportStage(
-                configuration=configuration,
-            ),
-        )
-    )
+    stages: list[PipelineStage] = [
+        create_passive_stage(
+            configuration=configuration,
+            subprocess_runner=runner,
+        ),
+        create_fingerprint_stage(
+            configuration=configuration,
+            subprocess_runner=runner,
+        ),
+        RoutingStage(),
+        create_discovery_stage(
+            configuration=configuration,
+            subprocess_runner=runner,
+        ),
+        create_vulnerability_stage(
+            configuration=configuration,
+            subprocess_runner=runner,
+        ),
+        ReportStage(
+            configuration=configuration,
+        ),
+    ]
+    return Pipeline(stages)
 
 
 def _determine_exit_code(result: OrchestrationResult) -> int:
@@ -262,9 +258,7 @@ def _execution_summary(
         "target_url": target.url,
         "normalized_domain": target.normalized_domain,
         "scan_id": None if context is None else context.scan_id,
-        "scan_directory": (
-            None if context is None else str(context.scan_directory)
-        ),
+        "scan_directory": (None if context is None else str(context.scan_directory)),
         "stages": stages,
         "severity_counts": severity_counts,
         "report_paths": report_paths,
@@ -319,12 +313,8 @@ def _configuration_data(configuration: AppConfig) -> dict[str, object]:
         "profile": {
             "name": configuration.profile.name,
             "safety": {
-                "allow_destructive": (
-                    configuration.profile.safety.allow_destructive
-                ),
-                "allow_auth_bypass": (
-                    configuration.profile.safety.allow_auth_bypass
-                ),
+                "allow_destructive": (configuration.profile.safety.allow_destructive),
+                "allow_auth_bypass": (configuration.profile.safety.allow_auth_bypass),
                 "allow_waf_bypass": configuration.profile.safety.allow_waf_bypass,
                 "allow_rate_limit_bypass": (
                     configuration.profile.safety.allow_rate_limit_bypass
@@ -356,18 +346,12 @@ def _configuration_data(configuration: AppConfig) -> dict[str, object]:
         "fingerprint": {
             "ports": list(configuration.fingerprint.ports),
             "timing_template": configuration.fingerprint.timing_template,
-            "host_timeout_seconds": (
-                configuration.fingerprint.host_timeout_seconds
-            ),
+            "host_timeout_seconds": (configuration.fingerprint.host_timeout_seconds),
         },
         "discovery": {
             "status_codes": list(configuration.discovery.status_codes),
-            "dirsearch_extensions": list(
-                configuration.discovery.dirsearch_extensions
-            ),
-            "max_recursion_depth": (
-                configuration.discovery.max_recursion_depth
-            ),
+            "dirsearch_extensions": list(configuration.discovery.dirsearch_extensions),
+            "max_recursion_depth": (configuration.discovery.max_recursion_depth),
         },
         "reports": {
             "json": configuration.reports.json,
@@ -409,4 +393,3 @@ __all__ = [
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

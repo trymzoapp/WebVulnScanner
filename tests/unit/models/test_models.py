@@ -2,7 +2,7 @@
 
 import json
 from dataclasses import FrozenInstanceError
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 from typing import Any
 
 import pytest
@@ -10,14 +10,13 @@ import pytest
 from webvulnscanner.models.finding import Finding, Severity
 from webvulnscanner.models.scan_result import (
     ScanError,
-    ScanResult,
     ScannerStatus,
+    ScanResult,
     SubprocessDetails,
 )
 from webvulnscanner.models.technology import Technology
 
-
-STARTED = datetime(2026, 9, 29, 12, 0, tzinfo=timezone.utc)
+STARTED = datetime(2026, 9, 29, 12, 0, tzinfo=UTC)
 COMPLETED = STARTED + timedelta(seconds=2.5)
 
 
@@ -144,7 +143,7 @@ def test_successful_scan_result_round_trip_is_json_compatible() -> None:
     restored = ScanResult.from_dict(payload)
 
     assert restored == result
-    assert result.started_at.tzinfo is timezone.utc
+    assert result.started_at.tzinfo is UTC
     assert result.duration_seconds == 2.5
     assert payload["started_at"].endswith("Z")
     assert isinstance(payload["findings"], list)

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 from webvulnscanner.models.scan_result import RoutingDecision
 from webvulnscanner.routing.rules import (
@@ -90,7 +90,5 @@ class RoutingDecisionEngine:
     ) -> tuple[str, ...]:
         """Return sorted list of enabled scanner names from routing decisions."""
         return tuple(
-            sorted(
-                decision.scanner for decision in decisions if decision.enabled
-            )
+            sorted(decision.scanner for decision in decisions if decision.enabled)
         )

@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timezone
+from collections.abc import Mapping
+from datetime import UTC, datetime
 from pathlib import Path
-from types import MappingProxyType
-from typing import Mapping
 
 import pytest
 
@@ -36,9 +35,9 @@ class SlowStage:
         context: ScanContext,
         previous: Mapping[StageName, StageOutcome],
     ) -> StageOutcome:
-        start = datetime.now(timezone.utc)
+        start = datetime.now(UTC)
         await asyncio.sleep(self.duration)
-        end = datetime.now(timezone.utc)
+        end = datetime.now(UTC)
         return StageOutcome(
             name=self.name,
             status=StageStatus.SUCCESS,
@@ -61,7 +60,7 @@ class FastStage:
         context: ScanContext,
         previous: Mapping[StageName, StageOutcome],
     ) -> StageOutcome:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         if not self.succeed:
             return StageOutcome(
                 name=self.name,
@@ -106,10 +105,7 @@ async def test_pipeline_cancellation_under_stress() -> None:
 @pytest.mark.asyncio
 async def test_concurrent_target_scans_isolation(tmp_path: Path) -> None:
     """Running multiple pipeline scans concurrently for different targets must remain isolated."""
-    targets = [
-        Target(f"https://target{i}.example.com")
-        for i in range(4)
-    ]
+    targets = [Target(f"https://target{i}.example.com") for i in range(4)]
 
     async def run_scan_for_target(t: Target, index: int) -> tuple[int, PipelineStatus]:
         ctx = ScanContext(
@@ -133,7 +129,7 @@ async def test_concurrent_target_scans_isolation(tmp_path: Path) -> None:
     )
 
     assert len(results) == 4
-    for idx, status in results:
+    for _idx, status in results:
         assert status == PipelineStatus.COMPLETED
 
 

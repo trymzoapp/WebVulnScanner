@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from webvulnscanner.models.finding import Finding, Severity
 from webvulnscanner.parsers.base import BaseParser, ParseResult, ParserInput
@@ -24,7 +25,9 @@ class WPScanParser(BaseParser[Finding]):
         try:
             data = json.loads(content)
         except json.JSONDecodeError as error:
-            raise self.parsing_error("WPScan output is not valid JSON", cause=error)
+            raise self.parsing_error(
+                "WPScan output is not valid JSON", cause=error
+            ) from error
 
         if not isinstance(data, Mapping):
             raise self.parsing_error("WPScan output must be a JSON object")
@@ -41,7 +44,9 @@ class WPScanParser(BaseParser[Finding]):
             if isinstance(vuls, list):
                 for vul in vuls:
                     if isinstance(vul, Mapping):
-                        findings.append(_vul_to_finding("WordPress Core", vul, str(target)))
+                        findings.append(
+                            _vul_to_finding("WordPress Core", vul, str(target))
+                        )
 
         # 2. Plugin vulnerabilities
         plugins_data = data.get("plugins")
@@ -53,7 +58,9 @@ class WPScanParser(BaseParser[Finding]):
                         for vul in vuls:
                             if isinstance(vul, Mapping):
                                 findings.append(
-                                    _vul_to_finding(f"Plugin: {plugin_slug}", vul, str(target))
+                                    _vul_to_finding(
+                                        f"Plugin: {plugin_slug}", vul, str(target)
+                                    )
                                 )
 
         # 3. Theme vulnerabilities
@@ -89,7 +96,7 @@ def _vul_to_finding(component: str, vul: Mapping[str, Any], target: str) -> Find
     references: list[str] = []
     refs = vul.get("references")
     if isinstance(refs, Mapping):
-        for ref_type, ref_urls in refs.items():
+        for _ref_type, ref_urls in refs.items():
             if isinstance(ref_urls, list):
                 for u in ref_urls:
                     if isinstance(u, str) and u.strip():

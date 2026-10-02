@@ -15,14 +15,14 @@ from webvulnscanner.core.pipeline import (
     StageStatus,
 )
 from webvulnscanner.core.scheduler import (
-    SchedulableScanner,
     ScannerScheduler,
+    SchedulableScanner,
 )
 from webvulnscanner.core.subprocess_runner import AsyncSubprocessRunner
 from webvulnscanner.models.scan_result import (
     ScanError,
-    ScanResult,
     ScannerStatus,
+    ScanResult,
 )
 from webvulnscanner.scanners.passive.headers import (
     HeadersScanner,
@@ -39,7 +39,6 @@ from webvulnscanner.scanners.passive.whois import (
     WhoisScanner,
 )
 from webvulnscanner.utils.time import as_utc, utc_now
-
 
 PASSIVE_SCANNERS = ("headers", "robots", "whois", "wayback", "subfinder")
 PassiveScannerFactory = Callable[[ScanContext], SchedulableScanner]
@@ -120,15 +119,13 @@ class PassiveReconStage:
             slots.append(None)
 
         scheduled = await self.scheduler.run(runnable)
-        for index, result in zip(runnable_indices, scheduled):
+        for index, result in zip(runnable_indices, scheduled, strict=False):
             slots[index] = result
         results = tuple(result for result in slots if result is not None)
         artifacts = _merge_artifacts(results)
 
         attempted = [
-            result
-            for result in results
-            if result.status is not ScannerStatus.SKIPPED
+            result for result in results if result.status is not ScannerStatus.SKIPPED
         ]
         failed = [
             result

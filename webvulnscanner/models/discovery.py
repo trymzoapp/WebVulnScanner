@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any, Mapping
+from typing import Any
 
 from webvulnscanner.models.target import Target
 
@@ -20,9 +21,7 @@ class DiscoveredResource:
     def __post_init__(self) -> None:
         target = Target(self.url)
         object.__setattr__(self, "url", target.url)
-        if isinstance(self.status_code, bool) or not isinstance(
-            self.status_code, int
-        ):
+        if isinstance(self.status_code, bool) or not isinstance(self.status_code, int):
             raise TypeError("status_code must be an integer")
         if not 100 <= self.status_code <= 599:
             raise ValueError("status_code must be between 100 and 599")

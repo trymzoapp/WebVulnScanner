@@ -6,12 +6,11 @@ import json
 import logging
 import math
 import sys
-from collections.abc import Collection, Mapping, Sequence
-from datetime import datetime, timezone
+from collections.abc import Collection, Mapping, MutableMapping, Sequence
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any, TextIO
-
 
 LOGGER_NAME = "webvulnscanner"
 REDACTED = "[REDACTED]"
@@ -40,9 +39,7 @@ class SecretRedactor:
     def __init__(self, sensitive_keys: Collection[str] = ()) -> None:
         combined = set(_DEFAULT_SENSITIVE_KEYS)
         combined.update(sensitive_keys)
-        self._sensitive_keys = frozenset(
-            _normalize_key(key) for key in combined if key
-        )
+        self._sensitive_keys = frozenset(_normalize_key(key) for key in combined if key)
 
     def redact_fields(
         self,
@@ -89,9 +86,7 @@ class SecretRedactor:
         if isinstance(value, Sequence) and not isinstance(
             value, (str, bytes, bytearray)
         ):
-            return [
-                self._redact_value("", item, sensitive_values) for item in value
-            ]
+            return [self._redact_value("", item, sensitive_values) for item in value]
         return _json_safe_scalar(value)
 
 
@@ -103,9 +98,7 @@ class JsonLogFormatter(logging.Formatter):
         self._redactor = redactor
 
     def format(self, record: logging.LogRecord) -> str:
-        fields, sensitive_values = self._redactor.redact_fields(
-            _extra_fields(record)
-        )
+        fields, sensitive_values = self._redactor.redact_fields(_extra_fields(record))
         message = self._redactor.redact_message(
             record.getMessage(),
             sensitive_values,
@@ -139,9 +132,7 @@ class HumanLogFormatter(logging.Formatter):
         self._redactor = redactor
 
     def format(self, record: logging.LogRecord) -> str:
-        fields, sensitive_values = self._redactor.redact_fields(
-            _extra_fields(record)
-        )
+        fields, sensitive_values = self._redactor.redact_fields(_extra_fields(record))
         message = _single_line(
             self._redactor.redact_message(record.getMessage(), sensitive_values)
         )
@@ -160,20 +151,22 @@ class HumanLogFormatter(logging.Formatter):
         )
 
 
-class ContextLoggerAdapter(logging.LoggerAdapter):
+class ContextLoggerAdapter(logging.LoggerAdapter[logging.Logger]):
     """Logger adapter that carries scan and scanner context."""
 
     def process(
         self,
         msg: object,
-        kwargs: dict[str, Any],
-    ) -> tuple[object, dict[str, Any]]:
+        kwargs: MutableMapping[str, Any],
+    ) -> tuple[object, MutableMapping[str, Any]]:
         call_extra = kwargs.get("extra", {})
         if call_extra is None:
             call_extra = {}
         if not isinstance(call_extra, Mapping):
             raise TypeError("logging extra fields must be a mapping")
-        kwargs["extra"] = {**self.extra, **call_extra}
+        extra_dict = dict(self.extra or {})
+        extra_dict.update(call_extra)
+        kwargs["extra"] = extra_dict
         return msg, kwargs
 
 
@@ -205,7 +198,7 @@ def configure_logging(
         if output_format == "json"
         else HumanLogFormatter(redactor)
     )
-    setattr(handler, "_webvulnscanner_managed", True)
+    handler._webvulnscanner_managed = True  # type: ignore[attr-defined]
     logger.addHandler(handler)
     return logger
 
@@ -232,7 +225,7 @@ def bind_logger(
 
 
 def log_event(
-    logger: logging.Logger | logging.LoggerAdapter,
+    logger: logging.Logger | logging.LoggerAdapter[logging.Logger],
     level: int,
     event: str,
     message: str,
@@ -270,9 +263,7 @@ def _collect_strings(value: object, output: list[str]) -> None:
     elif isinstance(value, Mapping):
         for nested in value.values():
             _collect_strings(nested, output)
-    elif isinstance(value, Sequence) and not isinstance(
-        value, (str, bytes, bytearray)
-    ):
+    elif isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
         for nested in value:
             _collect_strings(nested, output)
 
@@ -283,8 +274,8 @@ def _json_safe_scalar(value: object) -> object:
     if isinstance(value, float):
         return value if math.isfinite(value) else str(value)
     if isinstance(value, datetime):
-        aware = value if value.tzinfo is not None else value.replace(tzinfo=timezone.utc)
-        return aware.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+        aware = value if value.tzinfo is not None else value.replace(tzinfo=UTC)
+        return aware.astimezone(UTC).isoformat().replace("+00:00", "Z")
     if isinstance(value, (Path, Enum)):
         return str(value.value if isinstance(value, Enum) else value)
     return f"<{type(value).__name__}>"
@@ -292,7 +283,7 @@ def _json_safe_scalar(value: object) -> object:
 
 def _utc_timestamp(created: float) -> str:
     return (
-        datetime.fromtimestamp(created, timezone.utc)
+        datetime.fromtimestamp(created, UTC)
         .isoformat(timespec="milliseconds")
         .replace("+00:00", "Z")
     )

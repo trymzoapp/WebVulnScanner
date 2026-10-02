@@ -53,6 +53,7 @@ webvulnscanner = [
 
 [tool.pytest.ini_options]
 addopts = "--strict-config --strict-markers --import-mode=importlib"
+pythonpath = ["."]
 testpaths = ["tests"]
 markers = [
     "integration: tests that exercise multiple components or external process boundaries",

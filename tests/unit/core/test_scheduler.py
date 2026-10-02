@@ -1,7 +1,7 @@
 """Tests for concurrent scanner scheduling and failure isolation."""
 
 import asyncio
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import pytest
@@ -10,12 +10,11 @@ from webvulnscanner.core.exceptions import ScannerValidationError
 from webvulnscanner.core.scheduler import ScannerScheduler
 from webvulnscanner.models.scan_result import (
     ScanError,
-    ScanResult,
     ScannerStatus,
+    ScanResult,
 )
 
-
-NOW = datetime(2026, 9, 29, 12, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 9, 29, 12, 0, tzinfo=UTC)
 
 
 def success(name: str) -> ScanResult:

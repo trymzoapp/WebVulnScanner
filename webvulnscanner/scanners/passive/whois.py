@@ -5,14 +5,14 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Protocol
 
 from webvulnscanner.config.loader import AppConfig
 from webvulnscanner.core.context import ScanContext
 from webvulnscanner.core.exceptions import WebVulnScannerError
 from webvulnscanner.core.subprocess_runner import AsyncSubprocessRunner
-from webvulnscanner.models.scan_result import ScanError, ScanResult, ScannerStatus
+from webvulnscanner.models.scan_result import ScanError, ScannerStatus, ScanResult
 from webvulnscanner.utils.command import Command
 from webvulnscanner.utils.filesystem import atomic_write_json
 from webvulnscanner.utils.time import as_utc, format_utc, utc_now
@@ -86,7 +86,9 @@ class WhoisScanner:
         scanner_config = configuration.scanner(self.name)
         if client is None:
             if runner is None or scanner_config.executable is None:
-                raise ValueError("WHOIS requires an injected client or configured runner")
+                raise ValueError(
+                    "WHOIS requires an injected client or configured runner"
+                )
             client = CommandWhoisClient(runner, scanner_config.executable)
         self.client = client
         self._time_provider = time_provider
@@ -129,9 +131,7 @@ class WhoisScanner:
             await self.validate()
             record = await self.client.lookup(
                 self.context.target.host,
-                timeout=float(
-                    self.configuration.timeouts.for_scanner(self.name)
-                ),
+                timeout=float(self.configuration.timeouts.for_scanner(self.name)),
             )
             payload = self.parse(record)
             output = atomic_write_json(
@@ -191,7 +191,7 @@ def _normalized_date(value: datetime | str | None) -> str | None:
     except ValueError as error:
         raise WhoisFailure("malformed_response", "WHOIS date was malformed") from error
     if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=timezone.utc)
+        parsed = parsed.replace(tzinfo=UTC)
     return format_utc(parsed)
 
 
@@ -237,9 +237,7 @@ def _parse_common_whois(raw: str) -> WhoisRecord:
             "expires on",
         ),
         statuses=tuple(fields.get("domain status", ())),
-        nameservers=tuple(
-            fields.get("name server", fields.get("nserver", ()))
-        ),
+        nameservers=tuple(fields.get("name server", fields.get("nserver", ()))),
     )
 
 

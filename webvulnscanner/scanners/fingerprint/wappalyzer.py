@@ -86,9 +86,7 @@ class WappalyzerScanner(BaseScanner):
         )
         return ScannerOutput(
             technologies=parsed.items,
-            output_paths=(
-                output.relative_to(self.context.scan_directory).as_posix(),
-            ),
+            output_paths=(output.relative_to(self.context.scan_directory).as_posix(),),
             artifacts={
                 "technologies": tuple(item.to_dict() for item in parsed.items),
             },

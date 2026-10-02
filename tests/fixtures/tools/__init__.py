@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 import stat
 import sys
 from pathlib import Path
@@ -24,7 +23,7 @@ ALL_TOOLS = (
 
 def ensure_tool_wrappers() -> None:
     """Generate .cmd and POSIX wrapper scripts in tests/fixtures/tools/."""
-    fake_tool_py = TOOLS_DIR / "fake_tool.py"
+    TOOLS_DIR / "fake_tool.py"
     for tool in ALL_TOOLS:
         cmd_path = TOOLS_DIR / f"{tool}.cmd"
         cmd_content = f"""@echo off

@@ -6,7 +6,7 @@ import asyncio
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from types import MappingProxyType
 from typing import Protocol
 
@@ -15,7 +15,7 @@ from webvulnscanner.core.exceptions import WebVulnScannerError
 from webvulnscanner.utils.time import as_utc, utc_now
 
 
-class StageName(str, Enum):
+class StageName(StrEnum):
     """Planned scanner-independent pipeline stages."""
 
     PASSIVE = "passive"
@@ -28,7 +28,7 @@ class StageName(str, Enum):
     REPORT = "report"
 
 
-class StageStatus(str, Enum):
+class StageStatus(StrEnum):
     """Terminal status of one pipeline stage."""
 
     SUCCESS = "success"
@@ -36,14 +36,14 @@ class StageStatus(str, Enum):
     SKIPPED = "skipped"
 
 
-class FailurePolicy(str, Enum):
+class FailurePolicy(StrEnum):
     """Whether pipeline execution may continue after a stage failure."""
 
     CONTINUE = "continue"
     STOP = "stop"
 
 
-class PipelineStatus(str, Enum):
+class PipelineStatus(StrEnum):
     """Aggregate pipeline execution state."""
 
     COMPLETED = "completed"
@@ -119,11 +119,7 @@ class PipelineResult:
 
     @property
     def errors(self) -> tuple[str, ...]:
-        return tuple(
-            error
-            for outcome in self.outcomes
-            for error in outcome.errors
-        )
+        return tuple(error for outcome in self.outcomes for error in outcome.errors)
 
 
 class Pipeline:
@@ -232,7 +228,9 @@ class Pipeline:
                 not isinstance(dependency, StageName)
                 for dependency in stage.dependencies
             ):
-                raise TypeError("stage dependencies must be a tuple of StageName values")
+                raise TypeError(
+                    "stage dependencies must be a tuple of StageName values"
+                )
             missing = set(stage.dependencies) - known
             if missing:
                 names = ", ".join(sorted(item.value for item in missing))

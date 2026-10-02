@@ -8,7 +8,6 @@ import pytest
 from webvulnscanner.config.loader import ConfigLoader, load_config
 from webvulnscanner.core.exceptions import ConfigurationError
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 FIXTURES = PROJECT_ROOT / "tests" / "fixtures" / "config"
 
@@ -198,9 +197,7 @@ def test_runtime_limits_cannot_exceed_profile_safety_envelope() -> None:
         load_config(overrides={"concurrency": {"max_scanners": 4}})
 
     with pytest.raises(ConfigurationError):
-        load_config(
-            overrides={"scanners": {"nuclei": {"rate_limit_per_second": 6.0}}}
-        )
+        load_config(overrides={"scanners": {"nuclei": {"rate_limit_per_second": 6.0}}})
 
 
 def test_explicit_profile_cannot_be_renamed_by_user_file(tmp_path: Path) -> None:

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import sys
 import time
 
 import pytest
@@ -23,10 +22,7 @@ async def test_simultaneous_timeouts() -> None:
     )
 
     sleep_code = "import time; time.sleep(10)"
-    commands = [
-        Command("python", ("-c", sleep_code))
-        for _ in range(6)
-    ]
+    commands = [Command("python", ("-c", sleep_code)) for _ in range(6)]
 
     start = time.monotonic()
     results = await asyncio.gather(*(runner.run(cmd) for cmd in commands))

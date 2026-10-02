@@ -3,8 +3,6 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-import pytest
-
 from webvulnscanner.aggregation.aggregator import ResultAggregator
 from webvulnscanner.core.context import create_scan_context
 from webvulnscanner.models.finding import Finding, Severity
@@ -33,7 +31,7 @@ def test_markdown_report_generation() -> None:
         )
 
         aggregator = ResultAggregator()
-        report = aggregator.aggregate(ctx, {})
+        aggregator.aggregate(ctx, {})
 
         # Re-aggregate with findings
         outcomes = {

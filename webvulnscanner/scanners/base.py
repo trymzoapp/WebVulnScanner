@@ -21,8 +21,8 @@ from webvulnscanner.core.subprocess_runner import SubprocessResult
 from webvulnscanner.models.finding import Finding
 from webvulnscanner.models.scan_result import (
     ScanError,
-    ScanResult,
     ScannerStatus,
+    ScanResult,
     SubprocessDetails,
 )
 from webvulnscanner.models.technology import Technology

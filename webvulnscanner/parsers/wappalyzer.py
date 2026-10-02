@@ -22,7 +22,9 @@ class WappalyzerParser(BaseParser[Technology]):
         try:
             payload = json.loads(parser_input.content)
         except json.JSONDecodeError as error:
-            raise self.parsing_error("Wappalyzer output is not valid JSON", cause=error)
+            raise self.parsing_error(
+                "Wappalyzer output is not valid JSON", cause=error
+            ) from error
 
         records = _technology_records(payload)
         technologies: dict[tuple[str, str | None], Technology] = {}
@@ -87,9 +89,7 @@ def _technology(record: Mapping[str, Any]) -> Technology:
     raw_confidence = record.get("confidence", 1.0)
     if isinstance(raw_confidence, str):
         raw_confidence = float(raw_confidence)
-    if isinstance(raw_confidence, bool) or not isinstance(
-        raw_confidence, (int, float)
-    ):
+    if isinstance(raw_confidence, bool) or not isinstance(raw_confidence, (int, float)):
         raise TypeError("technology confidence must be numeric")
     confidence = float(raw_confidence)
     if confidence > 1.0:

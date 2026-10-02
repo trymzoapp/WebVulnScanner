@@ -1,7 +1,7 @@
 """Tests for passive reconnaissance stage assembly."""
 
 import asyncio
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -10,8 +10,8 @@ from webvulnscanner.core.context import ScanContextFactory
 from webvulnscanner.core.pipeline import StageStatus
 from webvulnscanner.models.scan_result import (
     ScanError,
-    ScanResult,
     ScannerStatus,
+    ScanResult,
 )
 from webvulnscanner.models.target import Target
 from webvulnscanner.scanners.passive import (
@@ -20,8 +20,7 @@ from webvulnscanner.scanners.passive import (
     PassiveReconStage,
 )
 
-
-NOW = datetime(2026, 9, 29, 12, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 9, 29, 12, 0, tzinfo=UTC)
 
 
 def result(
@@ -155,9 +154,7 @@ def test_disabled_scanners_are_not_constructed_and_are_retained_as_skipped(
 
     assert "robots" not in created
     assert "whois" not in created
-    statuses = {
-        item.scanner: item.status for item in artifacts.scanner_results
-    }
+    statuses = {item.scanner: item.status for item in artifacts.scanner_results}
     assert statuses["robots"] is ScannerStatus.SKIPPED
     assert statuses["whois"] is ScannerStatus.SKIPPED
 
@@ -182,14 +179,11 @@ def test_missing_optional_factory_does_not_prevent_other_scanners(
 
     assert outcome.status is StageStatus.SUCCESS
     subfinder = next(
-        item
-        for item in artifacts.scanner_results
-        if item.scanner == "subfinder"
+        item for item in artifacts.scanner_results if item.scanner == "subfinder"
     )
     assert subfinder.status is ScannerStatus.FAILED
     assert any(
-        item.status is ScannerStatus.SUCCESS
-        for item in artifacts.scanner_results
+        item.status is ScannerStatus.SUCCESS for item in artifacts.scanner_results
     )
 
 
@@ -239,15 +233,11 @@ def test_scheduler_enforces_configured_passive_concurrency(
                 finally:
                     active -= 1
 
-        configuration = load_config(
-            overrides={"concurrency": {"max_scanners": 2}}
-        )
+        configuration = load_config(overrides={"concurrency": {"max_scanners": 2}})
         stage = PassiveReconStage(
             configuration=configuration,
             scanner_factories={
-                name: (
-                    lambda scan_context, name=name: BlockingScanner(name)
-                )
+                name: (lambda scan_context, name=name: BlockingScanner(name))
                 for name in PASSIVE_SCANNERS
             },
             time_provider=lambda: NOW,

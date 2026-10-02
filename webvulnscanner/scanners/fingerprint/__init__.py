@@ -15,21 +15,20 @@ from webvulnscanner.core.pipeline import (
     StageStatus,
 )
 from webvulnscanner.core.scheduler import (
-    SchedulableScanner,
     ScannerScheduler,
+    SchedulableScanner,
 )
 from webvulnscanner.core.subprocess_runner import AsyncSubprocessRunner
 from webvulnscanner.models.scan_result import (
     ScanError,
-    ScanResult,
     ScannerStatus,
+    ScanResult,
 )
 from webvulnscanner.models.service import WebService
 from webvulnscanner.models.technology import Technology
 from webvulnscanner.scanners.fingerprint.nmap import NmapScanner
 from webvulnscanner.scanners.fingerprint.wappalyzer import WappalyzerScanner
 from webvulnscanner.utils.time import as_utc, utc_now
-
 
 FINGERPRINT_SCANNERS = ("wappalyzer", "nmap")
 FingerprintScannerFactory = Callable[[ScanContext], SchedulableScanner]
@@ -50,7 +49,7 @@ class FingerprintStage:
     """Schedule configured fingerprint scanners and merge normalized evidence."""
 
     name = StageName.FINGERPRINT
-    dependencies = (StageName.PASSIVE,)
+    dependencies: tuple[StageName, ...] = (StageName.PASSIVE,)
     failure_policy = FailurePolicy.CONTINUE
 
     def __init__(
@@ -97,7 +96,7 @@ class FingerprintStage:
             slots.append(None)
 
         scheduled = await self.scheduler.run(runnable)
-        for index, result in zip(indices, scheduled):
+        for index, result in zip(indices, scheduled, strict=False):
             slots[index] = result
         results = tuple(item for item in slots if item is not None)
         artifacts = _merge(results)

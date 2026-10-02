@@ -9,7 +9,7 @@ from urllib.parse import urlsplit, urlunsplit
 
 from webvulnscanner.config.loader import AppConfig
 from webvulnscanner.core.context import ScanContext
-from webvulnscanner.models.scan_result import ScanError, ScanResult, ScannerStatus
+from webvulnscanner.models.scan_result import ScanError, ScannerStatus, ScanResult
 from webvulnscanner.scanners.passive.headers import (
     HttpClientProtocol,
     HttpRequestFailure,
@@ -46,9 +46,7 @@ class RobotsScanner:
     def build_command(self) -> HttpRequestSpec:
         """Build the single allowed robots.txt GET request."""
         target = urlsplit(self.context.target.url)
-        robots_url = urlunsplit(
-            (target.scheme, target.netloc, "/robots.txt", "", "")
-        )
+        robots_url = urlunsplit((target.scheme, target.netloc, "/robots.txt", "", ""))
         return HttpRequestSpec(
             method="GET",
             url=robots_url,
@@ -56,9 +54,7 @@ class RobotsScanner:
                 "User-Agent": self.configuration.http.user_agent,
                 "Accept": "text/plain,*/*;q=0.1",
             },
-            timeout_seconds=float(
-                self.configuration.timeouts.for_scanner(self.name)
-            ),
+            timeout_seconds=float(self.configuration.timeouts.for_scanner(self.name)),
             max_response_bytes=self.configuration.http.max_response_bytes,
         )
 

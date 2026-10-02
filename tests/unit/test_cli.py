@@ -10,7 +10,6 @@ from webvulnscanner import __version__
 from webvulnscanner.cli import EXIT_INVALID_INPUT, EXIT_SUCCESS, main
 from webvulnscanner.core.pipeline import Pipeline
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -129,7 +128,9 @@ def test_config_command_prints_validated_effective_configuration(
     assert payload["scanners"]["gobuster"]["enabled"] is True
 
 
-def test_user_config_is_applied(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+def test_user_config_is_applied(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
     user_config = tmp_path / "config.yaml"
     user_config.write_text(
         'profile:\n  name: "safe"\nreports:\n  html: false\n',
@@ -168,7 +169,7 @@ def test_invalid_configuration_returns_concise_exit_code(
 def test_console_entry_point_is_declared() -> None:
     pyproject = (PROJECT_ROOT / "pyproject.toml").read_text(encoding="utf-8")
 
-    assert '[project.scripts]' in pyproject
+    assert "[project.scripts]" in pyproject
     assert 'webvulnscanner = "webvulnscanner.cli:main"' in pyproject
 
 

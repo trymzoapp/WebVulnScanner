@@ -1,7 +1,7 @@
 """Tests for fingerprint-stage assembly and typed artifact merging."""
 
 import asyncio
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from webvulnscanner.config.loader import load_config
@@ -9,8 +9,8 @@ from webvulnscanner.core.context import ScanContextFactory
 from webvulnscanner.core.pipeline import StageStatus
 from webvulnscanner.models.scan_result import (
     ScanError,
-    ScanResult,
     ScannerStatus,
+    ScanResult,
 )
 from webvulnscanner.models.target import Target
 from webvulnscanner.models.technology import Technology
@@ -19,8 +19,7 @@ from webvulnscanner.scanners.fingerprint import (
     FingerprintStage,
 )
 
-
-NOW = datetime(2026, 9, 29, 12, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 9, 29, 12, 0, tzinfo=UTC)
 
 
 class FakeScanner:
@@ -76,9 +75,7 @@ def test_merges_technologies_services_and_preserves_provenance(
     wordpress_wappalyzer = Technology(
         name="WordPress", source="wappalyzer", confidence=0.95
     )
-    wordpress_nmap = Technology(
-        name="WordPress", source="nmap", confidence=0.7
-    )
+    wordpress_nmap = Technology(name="WordPress", source="nmap", confidence=0.7)
     service = {
         "host": "example.com",
         "port": 443,
@@ -90,9 +87,7 @@ def test_merges_technologies_services_and_preserves_provenance(
         "web_url": "https://example.com/",
     }
     outputs = {
-        "wappalyzer": success(
-            "wappalyzer", technologies=(wordpress_wappalyzer,)
-        ),
+        "wappalyzer": success("wappalyzer", technologies=(wordpress_wappalyzer,)),
         "nmap": success(
             "nmap",
             technologies=(wordpress_nmap,),
@@ -166,10 +161,7 @@ def test_mixed_failure_succeeds_but_all_failures_fail_stage(
         },
         time_provider=lambda: NOW,
     )
-    assert (
-        asyncio.run(mixed.run(context(tmp_path), {})).status
-        is StageStatus.SUCCESS
-    )
+    assert asyncio.run(mixed.run(context(tmp_path), {})).status is StageStatus.SUCCESS
 
     all_failed = FingerprintStage(
         configuration=load_config(),

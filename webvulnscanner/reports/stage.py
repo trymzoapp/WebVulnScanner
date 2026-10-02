@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-import logging
 from collections.abc import Callable, Mapping
 from datetime import datetime
-from pathlib import Path
 
 from webvulnscanner.aggregation.aggregator import ResultAggregator
 from webvulnscanner.config.loader import AppConfig
@@ -17,7 +15,6 @@ from webvulnscanner.core.pipeline import (
     StageOutcome,
     StageStatus,
 )
-
 from webvulnscanner.models.report import ScanMetadata, ScanStatus
 from webvulnscanner.reports.html_report import HtmlReportGenerator
 from webvulnscanner.reports.json_report import JsonReportGenerator

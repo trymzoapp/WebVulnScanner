@@ -9,7 +9,6 @@ from typing import Generic, TypeVar
 
 from webvulnscanner.core.exceptions import ParsingError
 
-
 ParsedT = TypeVar("ParsedT")
 
 

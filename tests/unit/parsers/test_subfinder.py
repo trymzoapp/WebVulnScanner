@@ -8,13 +8,7 @@ from webvulnscanner.parsers.subfinder import (
     registrable_domain,
 )
 
-
-FIXTURE = (
-    Path(__file__).resolve().parents[2]
-    / "fixtures"
-    / "subfinder"
-    / "mixed.jsonl"
-)
+FIXTURE = Path(__file__).resolve().parents[2] / "fixtures" / "subfinder" / "mixed.jsonl"
 
 
 def test_structured_fixture_is_normalized_deduplicated_and_scoped() -> None:

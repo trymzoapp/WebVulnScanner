@@ -1,7 +1,7 @@
 """Unit tests for report stage integration and latest-scan pointer updates."""
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -57,8 +57,8 @@ def test_update_latest_pointer_concurrency_protection() -> None:
             scanner_configuration={},
         )
 
-        t_newer = datetime(2026, 10, 1, 12, 0, 0, tzinfo=timezone.utc)
-        t_older = datetime(2026, 10, 1, 11, 0, 0, tzinfo=timezone.utc)
+        t_newer = datetime(2026, 10, 1, 12, 0, 0, tzinfo=UTC)
+        t_older = datetime(2026, 10, 1, 11, 0, 0, tzinfo=UTC)
 
         meta_newer = ScanMetadata(
             scan_id="scan-newer",

@@ -2,7 +2,7 @@
 
 import asyncio
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -18,8 +18,7 @@ from webvulnscanner.scanners.passive.headers import (
 )
 from webvulnscanner.scanners.passive.robots import RobotsScanner
 
-
-NOW = datetime(2026, 9, 29, 12, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 9, 29, 12, 0, tzinfo=UTC)
 
 
 class FakeClient:
@@ -92,9 +91,9 @@ def test_valid_robots_is_parsed_without_requesting_discovered_paths(
     assert client.requests[0].method == "GET"
     assert client.requests[0].url == "https://example.com/robots.txt"
     payload = json.loads(
-        (
-            scanner.context.scan_directory / "passive" / "robots.json"
-        ).read_text(encoding="utf-8")
+        (scanner.context.scan_directory / "passive" / "robots.json").read_text(
+            encoding="utf-8"
+        )
     )
     assert payload["groups"] == [
         {
@@ -124,9 +123,9 @@ def test_malformed_lines_become_warnings_without_losing_valid_data(
 
     assert result.status is ScannerStatus.SUCCESS
     payload = json.loads(
-        (
-            scanner.context.scan_directory / "passive" / "robots.json"
-        ).read_text(encoding="utf-8")
+        (scanner.context.scan_directory / "passive" / "robots.json").read_text(
+            encoding="utf-8"
+        )
     )
     assert len(payload["warnings"]) == 2
     assert payload["groups"][0]["disallow"] == ["/tmp"]
@@ -143,9 +142,9 @@ def test_missing_robots_is_successful_empty_result(
 
     assert result.status is ScannerStatus.SUCCESS
     payload = json.loads(
-        (
-            scanner.context.scan_directory / "passive" / "robots.json"
-        ).read_text(encoding="utf-8")
+        (scanner.context.scan_directory / "passive" / "robots.json").read_text(
+            encoding="utf-8"
+        )
     )
     assert payload["exists"] is False
     assert payload["groups"] == []
@@ -186,6 +185,4 @@ def test_bounded_request_failures_are_controlled(
     result = asyncio.run(scanner.run())
 
     assert result.status is expected_status
-    assert not (
-        scanner.context.scan_directory / "passive" / "robots.json"
-    ).exists()
+    assert not (scanner.context.scan_directory / "passive" / "robots.json").exists()

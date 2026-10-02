@@ -15,7 +15,7 @@ import httpx
 from webvulnscanner.config.loader import AppConfig
 from webvulnscanner.core.context import ScanContext
 from webvulnscanner.core.exceptions import TargetValidationError
-from webvulnscanner.models.scan_result import ScanError, ScanResult, ScannerStatus
+from webvulnscanner.models.scan_result import ScanError, ScannerStatus, ScanResult
 from webvulnscanner.models.target import Target, TargetKind
 from webvulnscanner.parsers.subfinder import registrable_domain
 from webvulnscanner.utils.filesystem import atomic_write_json
@@ -56,11 +56,12 @@ class HttpxWaybackClient:
         max_response_bytes: int,
     ) -> tuple[str, ...]:
         try:
-            async with httpx.AsyncClient(
-                follow_redirects=False,
-                verify=True,
-            ) as client:
-                async with client.stream(
+            async with (
+                httpx.AsyncClient(
+                    follow_redirects=False,
+                    verify=True,
+                ) as client,
+                client.stream(
                     "GET",
                     endpoint,
                     params={
@@ -73,20 +74,21 @@ class HttpxWaybackClient:
                         "limit": page_size,
                     },
                     timeout=timeout,
-                ) as response:
-                    if response.status_code != 200:
+                ) as response,
+            ):
+                if response.status_code != 200:
+                    raise WaybackFailure(
+                        "archive_error",
+                        "Wayback endpoint returned an unsuccessful status",
+                    )
+                content = bytearray()
+                async for chunk in response.aiter_bytes():
+                    content.extend(chunk)
+                    if len(content) > max_response_bytes:
                         raise WaybackFailure(
-                            "archive_error",
-                            "Wayback endpoint returned an unsuccessful status",
+                            "response_too_large",
+                            "Wayback response exceeded the configured size limit",
                         )
-                    content = bytearray()
-                    async for chunk in response.aiter_bytes():
-                        content.extend(chunk)
-                        if len(content) > max_response_bytes:
-                            raise WaybackFailure(
-                                "response_too_large",
-                                "Wayback response exceeded the configured size limit",
-                            )
         except WaybackFailure:
             raise
         except httpx.TimeoutException as error:
@@ -243,9 +245,7 @@ class WaybackScanner:
     async def _collect_pages(self) -> list[str]:
         collected: list[str] = []
         page_size = self.configuration.wayback.page_size
-        max_pages = math.ceil(
-            self.configuration.wayback.max_records / page_size
-        ) + 1
+        max_pages = math.ceil(self.configuration.wayback.max_records / page_size) + 1
         rate = self.configuration.scanner(self.name).rate_limit_per_second
         for page in range(max_pages):
             page_urls = await self.client.fetch_page(
@@ -253,9 +253,7 @@ class WaybackScanner:
                 domain=self.scope_domain,
                 page=page,
                 page_size=page_size,
-                timeout=float(
-                    self.configuration.timeouts.for_scanner(self.name)
-                ),
+                timeout=float(self.configuration.timeouts.for_scanner(self.name)),
                 max_response_bytes=self.configuration.http.max_response_bytes,
             )
             collected.extend(page_urls)

@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import re
 import uuid
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -13,6 +13,7 @@ from types import MappingProxyType
 
 from webvulnscanner.core.exceptions import StorageError
 from webvulnscanner.models.report import ScanMetadata
+from webvulnscanner.models.scan_result import RoutingDecision
 from webvulnscanner.models.target import Target
 from webvulnscanner.utils.filesystem import (
     atomic_write_json,
@@ -20,7 +21,6 @@ from webvulnscanner.utils.filesystem import (
     resolve_within_root,
 )
 from webvulnscanner.utils.time import as_utc, utc_now
-
 
 _SCAN_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{7,127}$")
 _STAGE_DIRECTORIES = (

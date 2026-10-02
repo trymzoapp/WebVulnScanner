@@ -5,16 +5,16 @@ from __future__ import annotations
 import copy
 import math
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from types import MappingProxyType
-from typing import Any, Mapping
+from typing import Any
 from urllib.parse import urlsplit
 
 import yaml
 
 from webvulnscanner.core.exceptions import ConfigurationError
-
 
 _ROOT_KEYS = {
     "timeouts",
@@ -185,19 +185,17 @@ class ConfigLoader:
     ) -> AppConfig:
         """Load configuration using documented low-to-high precedence."""
         defaults = self._load_yaml(self._config_directory / "defaults.yaml")
-        scanner_definitions = self._load_yaml(
-            self._config_directory / "scanners.yaml"
-        )
+        scanner_definitions = self._load_yaml(self._config_directory / "scanners.yaml")
         user_values = {} if user_config is None else self._load_yaml(Path(user_config))
 
         default_profile = _read_profile_name(defaults)
         user_profile = _read_profile_name(user_values, required=False)
         selected_profile = profile_name or user_profile or default_profile
+        if not selected_profile:
+            raise _configuration_error("configuration profile name must not be empty")
         _validate_profile_name(selected_profile)
 
-        profile_path = (
-            self._config_directory / "profiles" / f"{selected_profile}.yaml"
-        )
+        profile_path = self._config_directory / "profiles" / f"{selected_profile}.yaml"
         if not profile_path.is_file():
             raise _configuration_error(
                 f"configuration profile does not exist: {selected_profile}"
@@ -291,15 +289,11 @@ def _parse_config(
     )
     reports = _parse_reports(_required_mapping(data, "reports", "configuration"))
     http = _parse_http(_required_mapping(data, "http", "configuration"))
-    wayback = _parse_wayback(
-        _required_mapping(data, "wayback", "configuration")
-    )
+    wayback = _parse_wayback(_required_mapping(data, "wayback", "configuration"))
     fingerprint = _parse_fingerprint(
         _required_mapping(data, "fingerprint", "configuration")
     )
-    discovery = _parse_discovery(
-        _required_mapping(data, "discovery", "configuration")
-    )
+    discovery = _parse_discovery(_required_mapping(data, "discovery", "configuration"))
     storage = _parse_storage(_required_mapping(data, "storage", "configuration"))
 
     return AppConfig(
@@ -534,7 +528,9 @@ def _parse_profile(data: Mapping[str, Any]) -> ProfileConfig:
             "allow_rate_limit_bypass",
         )
     }
-    enabled_unsafe = sorted(name for name, enabled in forbidden_flags.items() if enabled)
+    enabled_unsafe = sorted(
+        name for name, enabled in forbidden_flags.items() if enabled
+    )
     if enabled_unsafe:
         raise _configuration_error(
             "unsafe profile flags are prohibited: " + ", ".join(enabled_unsafe)
@@ -667,9 +663,7 @@ def _required_mapping(
 
 
 def _mapping_value(name: str, value: object) -> Mapping[str, Any]:
-    if not isinstance(value, Mapping) or any(
-        not isinstance(key, str) for key in value
-    ):
+    if not isinstance(value, Mapping) or any(not isinstance(key, str) for key in value):
         raise _configuration_error(f"{name} must be a string-keyed mapping")
     return value
 
@@ -696,9 +690,7 @@ def _bounded_int(name: str, value: object, *, minimum: int, maximum: int) -> int
     if isinstance(value, bool) or not isinstance(value, int):
         raise _configuration_error(f"{name} must be an integer")
     if not minimum <= value <= maximum:
-        raise _configuration_error(
-            f"{name} must be between {minimum} and {maximum}"
-        )
+        raise _configuration_error(f"{name} must be between {minimum} and {maximum}")
     return value
 
 
@@ -713,9 +705,7 @@ def _bounded_float(
         raise _configuration_error(f"{name} must be a number")
     numeric = float(value)
     if not math.isfinite(numeric) or not minimum <= numeric <= maximum:
-        raise _configuration_error(
-            f"{name} must be between {minimum} and {maximum}"
-        )
+        raise _configuration_error(f"{name} must be between {minimum} and {maximum}")
     return numeric
 
 
@@ -733,9 +723,7 @@ def _bounded_int_sequence(
         )
     result: list[int] = []
     for item in value:
-        result.append(
-            _bounded_int(name, item, minimum=minimum, maximum=maximum)
-        )
+        result.append(_bounded_int(name, item, minimum=minimum, maximum=maximum))
     return tuple(dict.fromkeys(result))
 
 

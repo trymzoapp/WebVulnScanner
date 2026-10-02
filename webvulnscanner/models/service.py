@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any, Mapping
+from typing import Any
 
 from webvulnscanner.models.target import Target
 
@@ -34,9 +35,7 @@ class WebService:
             raise ValueError("only TCP service observations are supported")
         for name in ("service", "product", "version", "tunnel"):
             value = getattr(self, name)
-            if value is not None and (
-                not isinstance(value, str) or not value.strip()
-            ):
+            if value is not None and (not isinstance(value, str) or not value.strip()):
                 raise ValueError(f"{name} must be a non-empty string or None")
         if self.web_url is not None:
             web_target = Target(self.web_url)

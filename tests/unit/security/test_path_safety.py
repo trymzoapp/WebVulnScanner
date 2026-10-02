@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
 import pytest
@@ -38,7 +37,9 @@ def test_resolve_within_root_boundary_rules(tmp_path: Path) -> None:
     storage_root = tmp_path / "runs"
     storage_root.mkdir()
 
-    with pytest.raises(StorageError, match=r"output path must be below the storage root"):
+    with pytest.raises(
+        StorageError, match=r"output path must be below the storage root"
+    ):
         resolve_within_root(storage_root, storage_root, allow_root=False)
 
     resolved = resolve_within_root(storage_root, storage_root, allow_root=True)
@@ -75,7 +76,9 @@ def test_atomic_write_json_refuses_symlink_replacement(tmp_path: Path) -> None:
     except (OSError, NotImplementedError):
         pytest.skip("Symlinks not supported or permitted on this environment")
 
-    with pytest.raises(StorageError, match=r"refusing to replace a symbolic-link output path"):
+    with pytest.raises(
+        StorageError, match=r"refusing to replace a symbolic-link output path"
+    ):
         atomic_write_json(symlink_path, {"test": "data"}, storage_root=storage_root)
 
     # Ensure target file was not modified
@@ -89,7 +92,9 @@ def test_atomic_write_json_refuses_overwrite_when_disabled(tmp_path: Path) -> No
     destination = storage_root / "artifact.json"
     destination.write_text('{"initial": true}', encoding="utf-8")
 
-    with pytest.raises(StorageError, match=r"refusing to overwrite an existing scan artifact"):
+    with pytest.raises(
+        StorageError, match=r"refusing to overwrite an existing scan artifact"
+    ):
         atomic_write_json(
             destination,
             {"updated": True},
@@ -120,7 +125,7 @@ def test_target_normalized_domain_filesystem_safety() -> None:
 def test_target_rejects_path_traversal_and_slashes_in_host() -> None:
     """Target parsing must strictly reject traversal sequences and invalid characters in host."""
     malicious_targets = [
-        "https://example.com/../../etc/passwd",  # path traversal (path is okay, but let's check host validation)
+        "https://../etc/passwd",
         "https://../evil.com",
         "https://..",
         "https://example.com:65536",

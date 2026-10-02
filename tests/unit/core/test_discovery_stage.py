@@ -2,7 +2,7 @@
 
 import asyncio
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from webvulnscanner.config.loader import load_config
@@ -10,8 +10,8 @@ from webvulnscanner.core.context import ScanContextFactory
 from webvulnscanner.core.pipeline import StageName, StageOutcome, StageStatus
 from webvulnscanner.models.scan_result import (
     ScanError,
-    ScanResult,
     ScannerStatus,
+    ScanResult,
 )
 from webvulnscanner.models.target import Target
 from webvulnscanner.scanners.discovery import (
@@ -20,8 +20,7 @@ from webvulnscanner.scanners.discovery import (
 )
 from webvulnscanner.scanners.fingerprint import FingerprintArtifacts
 
-
-NOW = datetime(2026, 9, 29, 12, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 9, 29, 12, 0, tzinfo=UTC)
 
 
 class FakeScanner:
@@ -170,9 +169,9 @@ def test_deduplicates_targets_honors_tool_disable_and_persists_summary(
     assert isinstance(artifacts, DiscoveryArtifacts)
     assert artifacts.urls == ("https://example.com/admin",)
     payload = json.loads(
-        (
-            scan_context.stage_directory("discovery") / "gobuster.json"
-        ).read_text(encoding="utf-8")
+        (scan_context.stage_directory("discovery") / "gobuster.json").read_text(
+            encoding="utf-8"
+        )
     )
     assert payload["targets"] == ["https://example.com/"]
 
@@ -189,9 +188,7 @@ def test_partial_failure_retains_success_and_all_failures_fail(
                 )
             ),
             "dirsearch": (
-                lambda scan_context, url, output: FakeScanner(
-                    result("dirsearch", url)
-                )
+                lambda scan_context, url, output: FakeScanner(result("dirsearch", url))
             ),
         },
         time_provider=lambda: NOW,

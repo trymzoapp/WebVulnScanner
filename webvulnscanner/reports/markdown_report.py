@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
-from typing import Any
 
 from webvulnscanner.core.context import ScanContext
-from webvulnscanner.models.finding import Finding, Severity
+from webvulnscanner.models.finding import Severity
 from webvulnscanner.models.report import AggregateScanReport
 from webvulnscanner.utils.filesystem import atomic_write_text
 
@@ -84,7 +82,9 @@ class MarkdownReportGenerator:
                     lines.append(f"- **Rule ID:** `{_escape_md(finding.rule_id)}`")
                 lines.append("")
                 if finding.description:
-                    lines.extend([f"**Description:** {_escape_md(finding.description)}", ""])
+                    lines.extend(
+                        [f"**Description:** {_escape_md(finding.description)}", ""]
+                    )
                 if finding.evidence:
                     lines.append("**Evidence:**")
                     for ev in finding.evidence:
@@ -98,7 +98,7 @@ class MarkdownReportGenerator:
 
         if info_findings:
             lines.extend(["## Informational Observations", ""])
-            for idx, finding in enumerate(info_findings, start=1):
+            for finding in info_findings:
                 lines.append(
                     f"- **{_escape_md(finding.title)}** (`{_escape_md(finding.affected_resource)}` via `{_escape_md(finding.source_scanner)}`)"
                 )

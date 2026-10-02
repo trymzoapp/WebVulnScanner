@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import urlparse
 
 
 class FixtureHandler(BaseHTTPRequestHandler):
@@ -30,7 +30,9 @@ class FixtureHandler(BaseHTTPRequestHandler):
             self.send_header("X-Content-Type-Options", "nosniff")
             self.send_header("Cache-Control", "max-age=3600")
             self.end_headers()
-            self.wfile.write(b"<!DOCTYPE html><html><head><title>Test App</title></head><body><h1>Welcome</h1></body></html>")
+            self.wfile.write(
+                b"<!DOCTYPE html><html><head><title>Test App</title></head><body><h1>Welcome</h1></body></html>"
+            )
             return
 
         if path == "/robots.txt":
@@ -62,7 +64,7 @@ Sitemap: {base_url}/sitemap.xml
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.end_headers()
-            self.wfile.write(f"<h1>{path.lstrip('/').title()} Page</h1>".encode("utf-8"))
+            self.wfile.write(f"<h1>{path.lstrip('/').title()} Page</h1>".encode())
             return
 
         if path in {"/search", "/items"}:

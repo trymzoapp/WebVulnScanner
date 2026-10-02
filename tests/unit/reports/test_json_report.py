@@ -4,8 +4,6 @@ import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-import pytest
-
 from webvulnscanner.aggregation.aggregator import ResultAggregator
 from webvulnscanner.core.context import create_scan_context
 from webvulnscanner.models.finding import Finding, Severity
@@ -24,7 +22,7 @@ def test_json_report_generation() -> None:
             scanner_configuration={},
         )
 
-        f1 = Finding(
+        Finding(
             title="XSS Test",
             severity=Severity.HIGH,
             source_scanner="nuclei",

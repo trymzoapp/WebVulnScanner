@@ -4,7 +4,7 @@ import itertools
 import json
 import threading
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -14,7 +14,6 @@ from webvulnscanner.core.exceptions import StorageError
 from webvulnscanner.models.report import ScanMetadata, ScanStatus
 from webvulnscanner.models.target import Target
 
-
 FIXED_LOCAL_TIME = datetime(
     2026,
     9,
@@ -23,7 +22,7 @@ FIXED_LOCAL_TIME = datetime(
     30,
     tzinfo=timezone(timedelta(hours=5, minutes=30)),
 )
-FIXED_UTC_TIME = datetime(2026, 9, 29, 19, 0, tzinfo=timezone.utc)
+FIXED_UTC_TIME = datetime(2026, 9, 29, 19, 0, tzinfo=UTC)
 
 
 def scanner_snapshot() -> dict[str, object]:
@@ -57,13 +56,7 @@ def test_context_creates_required_website_utc_layout_and_artifacts(
         tool_versions={"nuclei": "3.3.0"},
     )
 
-    expected = (
-        tmp_path
-        / "runs"
-        / "example.com"
-        / "2026-09-29"
-        / "19-00-00"
-    ).resolve()
+    expected = (tmp_path / "runs" / "example.com" / "2026-09-29" / "19-00-00").resolve()
     assert context.scan_directory == expected
     assert context.scan_id == "scan-00000001"
     assert context.metadata.started_at == FIXED_UTC_TIME

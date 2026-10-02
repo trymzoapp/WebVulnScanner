@@ -8,10 +8,13 @@ from unittest.mock import AsyncMock
 import pytest
 
 from webvulnscanner.config.loader import load_config
-from webvulnscanner.core.context import ScanContext
-from webvulnscanner.core.exceptions import ScannerValidationError, TargetValidationError
+from webvulnscanner.core.context import create_scan_context
+from webvulnscanner.core.exceptions import ScannerValidationError
+from webvulnscanner.models.scan_result import RoutingDecision
 from webvulnscanner.models.target import Target
-from webvulnscanner.parsers.subfinder import SubfinderParser, _in_scope as subfinder_in_scope
+from webvulnscanner.parsers.subfinder import (
+    _in_scope as subfinder_in_scope,
+)
 from webvulnscanner.scanners.passive.wayback import _in_scope as wayback_in_scope
 from webvulnscanner.scanners.vulnerability.nuclei import NucleiScanner
 from webvulnscanner.scanners.vulnerability.sqlmap import SQLmapScanner
@@ -52,12 +55,11 @@ async def test_sqlmap_revalidates_target_within_scope() -> None:
     """SQLmapScanner.validate() must reject target URLs outside authorized context target."""
     config = load_config()
     context_target = Target("https://authorized.example.com")
-    context = ScanContext(
-        scan_id="20261001-090000-scope01",
-        target=context_target,
+    context = create_scan_context(
         storage_root=Path("runs"),
+        target=context_target,
         profile_name="safe",
-        started_at=None,
+        scanner_configuration={},
     )
     mock_runner = AsyncMock()
 
@@ -79,14 +81,20 @@ async def test_wpscan_revalidates_target_within_scope() -> None:
     """WPScanScanner.validate() must reject targets outside authorized host scope."""
     config = load_config()
     context_target = Target("https://authorized.example.com")
-    context = ScanContext(
-        scan_id="20261001-090000-scope02",
-        target=context_target,
+    context = create_scan_context(
         storage_root=Path("runs"),
+        target=context_target,
         profile_name="safe",
-        started_at=None,
+        scanner_configuration={},
     )
     mock_runner = AsyncMock()
+    routing = RoutingDecision(
+        scanner="wpscan",
+        enabled=True,
+        reason="WordPress detected",
+        source="wappalyzer",
+        rule_id="wp_rule",
+    )
 
     out_of_scope_target = "https://other.domain.com"
     scanner = WPScanScanner(
@@ -94,6 +102,7 @@ async def test_wpscan_revalidates_target_within_scope() -> None:
         runner=mock_runner,
         context=context,
         target_url=out_of_scope_target,
+        routing_decision=routing,
     )
 
     with pytest.raises(ScannerValidationError, match=r"outside authorized scope"):
@@ -105,21 +114,20 @@ async def test_nuclei_revalidates_target_within_scope() -> None:
     """NucleiScanner.validate() must reject targets outside authorized host scope."""
     config = load_config()
     context_target = Target("https://authorized.example.com")
-    context = ScanContext(
-        scan_id="20261001-090000-scope03",
-        target=context_target,
+    context = create_scan_context(
         storage_root=Path("runs"),
+        target=context_target,
         profile_name="safe",
-        started_at=None,
+        scanner_configuration={},
     )
     mock_runner = AsyncMock()
 
-    out_of_scope_target = Target("https://other.domain.com")
+    out_of_scope_target = "https://other.domain.com"
     scanner = NucleiScanner(
         configuration=config,
         runner=mock_runner,
         context=context,
-        target=out_of_scope_target,
+        target_urls=out_of_scope_target,
     )
 
     with pytest.raises(ScannerValidationError, match=r"outside authorized scope"):

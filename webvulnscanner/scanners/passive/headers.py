@@ -19,11 +19,10 @@ from webvulnscanner.core.exceptions import (
     ScannerValidationError,
     TargetValidationError,
 )
-from webvulnscanner.models.scan_result import ScanError, ScanResult, ScannerStatus
+from webvulnscanner.models.scan_result import ScanError, ScannerStatus, ScanResult
 from webvulnscanner.models.target import Target
 from webvulnscanner.utils.filesystem import atomic_write_json
 from webvulnscanner.utils.time import as_utc, utc_now
-
 
 _REDIRECT_STATUSES = frozenset({301, 302, 303, 307, 308})
 _SELECTED_HEADERS = frozenset(
@@ -144,33 +143,35 @@ class HttpxHeadersClient:
 
     async def get(self, request: HttpRequestSpec) -> HttpResponseData:
         try:
-            async with httpx.AsyncClient(
-                follow_redirects=False,
-                verify=True,
-            ) as client:
-                async with client.stream(
+            async with (
+                httpx.AsyncClient(
+                    follow_redirects=False,
+                    verify=True,
+                ) as client,
+                client.stream(
                     request.method,
                     request.url,
                     headers=dict(request.headers),
                     timeout=request.timeout_seconds,
-                ) as response:
-                    body_bytes = 0
-                    body = bytearray()
-                    async for chunk in response.aiter_bytes():
-                        body_bytes += len(chunk)
-                        if body_bytes > request.max_response_bytes:
-                            raise HttpRequestFailure(
-                                "response_too_large",
-                                "response exceeded the configured size limit",
-                            )
-                        body.extend(chunk)
-                    return HttpResponseData(
-                        url=str(response.url),
-                        status_code=response.status_code,
-                        headers=tuple(response.headers.multi_items()),
-                        body_bytes=body_bytes,
-                        body=bytes(body),
-                    )
+                ) as response,
+            ):
+                body_bytes = 0
+                body = bytearray()
+                async for chunk in response.aiter_bytes():
+                    body_bytes += len(chunk)
+                    if body_bytes > request.max_response_bytes:
+                        raise HttpRequestFailure(
+                            "response_too_large",
+                            "response exceeded the configured size limit",
+                        )
+                    body.extend(chunk)
+                return HttpResponseData(
+                    url=str(response.url),
+                    status_code=response.status_code,
+                    headers=tuple(response.headers.multi_items()),
+                    body_bytes=body_bytes,
+                    body=bytes(body),
+                )
         except HttpRequestFailure:
             raise
         except httpx.TimeoutException as error:
@@ -234,9 +235,7 @@ class HeadersScanner:
                 "User-Agent": self.configuration.http.user_agent,
                 "Accept": "*/*",
             },
-            timeout_seconds=float(
-                self.configuration.timeouts.for_scanner(self.name)
-            ),
+            timeout_seconds=float(self.configuration.timeouts.for_scanner(self.name)),
             max_response_bytes=self.configuration.http.max_response_bytes,
         )
 

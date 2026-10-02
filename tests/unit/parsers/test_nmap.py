@@ -8,13 +8,7 @@ from webvulnscanner.core.exceptions import ParsingError
 from webvulnscanner.parsers.base import ParserInput
 from webvulnscanner.parsers.nmap import NmapParser
 
-
-FIXTURE = (
-    Path(__file__).resolve().parents[2]
-    / "fixtures"
-    / "nmap"
-    / "web-services.xml"
-)
+FIXTURE = Path(__file__).resolve().parents[2] / "fixtures" / "nmap" / "web-services.xml"
 
 
 def test_parses_only_open_configured_services_and_web_urls() -> None:
@@ -36,9 +30,7 @@ def test_parses_only_open_configured_services_and_web_urls() -> None:
 def test_missing_or_down_hosts_return_empty_result() -> None:
     content = '<nmaprun><host><status state="down"/></host></nmaprun>'
 
-    assert NmapParser("example.com", (80,)).parse(
-        ParserInput(content)
-    ).items == ()
+    assert NmapParser("example.com", (80,)).parse(ParserInput(content)).items == ()
 
 
 @pytest.mark.parametrize(

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Mapping
-from typing import Any
 
 from webvulnscanner.core.context import ScanContext, write_routing_decisions
 from webvulnscanner.core.logging import bind_logger, log_event
@@ -104,7 +103,9 @@ class RoutingStage(PipelineStage):
         fp_outcome = previous.get(StageName.FINGERPRINT)
         if fp_outcome and fp_outcome.artifacts:
             fp_art = fp_outcome.artifacts.get("fingerprint")
-            if hasattr(fp_art, "technologies") and isinstance(fp_art.technologies, tuple):
+            if hasattr(fp_art, "technologies") and isinstance(
+                fp_art.technologies, tuple
+            ):
                 techs.extend(fp_art.technologies)
             raw_techs = fp_outcome.artifacts.get("technologies", [])
             if isinstance(raw_techs, (list, tuple)):
@@ -123,7 +124,9 @@ class RoutingStage(PipelineStage):
         fp_outcome = previous.get(StageName.FINGERPRINT)
         if fp_outcome and fp_outcome.artifacts:
             fp_art = fp_outcome.artifacts.get("fingerprint")
-            if hasattr(fp_art, "web_services") and isinstance(fp_art.web_services, tuple):
+            if hasattr(fp_art, "web_services") and isinstance(
+                fp_art.web_services, tuple
+            ):
                 services.extend(fp_art.web_services)
             elif hasattr(fp_art, "services") and isinstance(fp_art.services, tuple):
                 services.extend(fp_art.services)

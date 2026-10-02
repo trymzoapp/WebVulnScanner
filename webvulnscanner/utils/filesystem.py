@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import tempfile
@@ -47,7 +48,9 @@ def create_directory(
     try:
         safe_path.mkdir(parents=parents, exist_ok=exist_ok)
     except OSError as error:
-        raise _storage_error("unable to create a scan directory", cause=error) from error
+        raise _storage_error(
+            "unable to create a scan directory", cause=error
+        ) from error
     return resolve_within_root(storage_root, safe_path)
 
 
@@ -59,6 +62,8 @@ def atomic_write_json(
     overwrite: bool = True,
 ) -> Path:
     """Atomically write JSON within storage using a same-directory temporary file."""
+    if path.is_symlink():
+        raise _storage_error("refusing to replace a symbolic-link output path")
     destination = resolve_within_root(storage_root, path)
     parent = resolve_within_root(storage_root, destination.parent, allow_root=True)
     if not parent.is_dir():
@@ -77,7 +82,9 @@ def atomic_write_json(
             allow_nan=False,
         )
     except (TypeError, ValueError) as error:
-        raise _storage_error("scan artifact is not JSON-compatible", cause=error) from error
+        raise _storage_error(
+            "scan artifact is not JSON-compatible", cause=error
+        ) from error
 
     descriptor: int | None = None
     temporary_path: Path | None = None
@@ -103,18 +110,16 @@ def atomic_write_json(
     except StorageError:
         raise
     except OSError as error:
-        raise _storage_error("unable to atomically write scan artifact", cause=error) from error
+        raise _storage_error(
+            "unable to atomically write scan artifact", cause=error
+        ) from error
     finally:
         if descriptor is not None:
-            try:
+            with contextlib.suppress(OSError):
                 os.close(descriptor)
-            except OSError:
-                pass
         if temporary_path is not None:
-            try:
+            with contextlib.suppress(OSError):
                 temporary_path.unlink(missing_ok=True)
-            except OSError:
-                pass
 
     return resolve_within_root(storage_root, destination)
 
@@ -163,18 +168,16 @@ def atomic_write_text(
     except StorageError:
         raise
     except OSError as error:
-        raise _storage_error("unable to atomically write scan artifact", cause=error) from error
+        raise _storage_error(
+            "unable to atomically write scan artifact", cause=error
+        ) from error
     finally:
         if descriptor is not None:
-            try:
+            with contextlib.suppress(OSError):
                 os.close(descriptor)
-            except OSError:
-                pass
         if temporary_path is not None:
-            try:
+            with contextlib.suppress(OSError):
                 temporary_path.unlink(missing_ok=True)
-            except OSError:
-                pass
 
     return resolve_within_root(storage_root, destination)
 

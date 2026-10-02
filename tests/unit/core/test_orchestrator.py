@@ -2,7 +2,7 @@
 
 import asyncio
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -23,8 +23,7 @@ from webvulnscanner.core.pipeline import (
 from webvulnscanner.models.report import ScanStatus
 from webvulnscanner.models.target import Target
 
-
-STARTED = datetime(2026, 9, 29, 12, 0, tzinfo=timezone.utc)
+STARTED = datetime(2026, 9, 29, 12, 0, tzinfo=UTC)
 COMPLETED = STARTED + timedelta(seconds=5)
 
 

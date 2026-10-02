@@ -47,9 +47,7 @@ class SubfinderParser(BaseParser[str]):
             except json.JSONDecodeError:
                 warnings.append(f"line {line_number}: malformed JSON record")
                 continue
-            if not isinstance(record, dict) or not isinstance(
-                record.get("host"), str
-            ):
+            if not isinstance(record, dict) or not isinstance(record.get("host"), str):
                 warnings.append(f"line {line_number}: missing string host")
                 continue
             try:

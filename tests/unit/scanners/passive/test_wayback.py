@@ -2,7 +2,7 @@
 
 import asyncio
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -17,8 +17,7 @@ from webvulnscanner.scanners.passive.wayback import (
     WaybackScanner,
 )
 
-
-NOW = datetime(2026, 9, 29, 12, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 9, 29, 12, 0, tzinfo=UTC)
 
 
 class FakeWaybackClient:
@@ -96,18 +95,16 @@ def test_pagination_rate_limit_canonicalization_and_query_collection(
         for call in client.calls
     )
     payload = json.loads(
-        (
-            instance.context.scan_directory / "passive" / "wayback.json"
-        ).read_text(encoding="utf-8")
+        (instance.context.scan_directory / "passive" / "wayback.json").read_text(
+            encoding="utf-8"
+        )
     )
     assert payload["urls"] == [
         "http://example.com/path",
         "https://api.example.com/search?q=one",
         "https://example.com/final",
     ]
-    assert payload["query_urls"] == [
-        "https://api.example.com/search?q=one"
-    ]
+    assert payload["query_urls"] == ["https://api.example.com/search?q=one"]
 
 
 def test_malformed_duplicates_and_out_of_scope_urls_are_counted(
@@ -132,9 +129,9 @@ def test_malformed_duplicates_and_out_of_scope_urls_are_counted(
 
     assert result.status is ScannerStatus.SUCCESS
     payload = json.loads(
-        (
-            instance.context.scan_directory / "passive" / "wayback.json"
-        ).read_text(encoding="utf-8")
+        (instance.context.scan_directory / "passive" / "wayback.json").read_text(
+            encoding="utf-8"
+        )
     )
     assert payload["urls"] == ["https://example.com/a"]
     assert payload["duplicate_count"] == 1
@@ -163,9 +160,9 @@ def test_record_cap_bounds_collection_and_pagination(tmp_path: Path) -> None:
     assert len(client.calls) == 1
     assert delays == []
     payload = json.loads(
-        (
-            instance.context.scan_directory / "passive" / "wayback.json"
-        ).read_text(encoding="utf-8")
+        (instance.context.scan_directory / "passive" / "wayback.json").read_text(
+            encoding="utf-8"
+        )
     )
     assert payload["count"] == 2
 
@@ -198,9 +195,7 @@ def test_archive_failures_are_controlled(
 
     assert result.status is expected_status
     assert result.output_paths == ()
-    assert not (
-        instance.context.scan_directory / "passive" / "wayback.json"
-    ).exists()
+    assert not (instance.context.scan_directory / "passive" / "wayback.json").exists()
 
 
 def test_build_command_contains_only_archive_endpoint_parameters(

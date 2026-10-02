@@ -1,7 +1,7 @@
 """Tests for generic pipeline stage coordination."""
 
 import asyncio
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -19,8 +19,7 @@ from webvulnscanner.core.pipeline import (
 )
 from webvulnscanner.models.target import Target
 
-
-NOW = datetime(2026, 9, 29, 12, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 9, 29, 12, 0, tzinfo=UTC)
 
 
 def context(tmp_path: Path) -> ScanContext:
@@ -95,7 +94,9 @@ def test_successful_stages_run_in_registration_order(tmp_path: Path) -> None:
         ),
     ]
 
-    result = asyncio.run(Pipeline(stages, time_provider=lambda: NOW).run(context(tmp_path)))
+    result = asyncio.run(
+        Pipeline(stages, time_provider=lambda: NOW).run(context(tmp_path))
+    )
 
     assert calls == [
         StageName.PASSIVE,
@@ -125,7 +126,9 @@ def test_recoverable_failure_skips_dependents_but_runs_eligible_stages(
         FakeStage(StageName.ROUTING, calls),
     ]
 
-    result = asyncio.run(Pipeline(stages, time_provider=lambda: NOW).run(context(tmp_path)))
+    result = asyncio.run(
+        Pipeline(stages, time_provider=lambda: NOW).run(context(tmp_path))
+    )
 
     assert calls == [StageName.PASSIVE, StageName.ROUTING]
     assert [outcome.status for outcome in result.outcomes] == [
@@ -151,7 +154,9 @@ def test_fatal_failure_stops_all_later_stages(tmp_path: Path) -> None:
         FakeStage(StageName.ROUTING, calls),
     ]
 
-    result = asyncio.run(Pipeline(stages, time_provider=lambda: NOW).run(context(tmp_path)))
+    result = asyncio.run(
+        Pipeline(stages, time_provider=lambda: NOW).run(context(tmp_path))
+    )
 
     assert calls == [StageName.PASSIVE]
     assert result.status is PipelineStatus.FAILED

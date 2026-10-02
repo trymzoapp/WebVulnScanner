@@ -9,7 +9,6 @@ from webvulnscanner.models.service import WebService
 from webvulnscanner.models.target import Target
 from webvulnscanner.parsers.base import BaseParser, ParseResult, ParserInput
 
-
 ServiceObservation = WebService
 
 
@@ -29,7 +28,9 @@ class NmapParser(BaseParser[WebService]):
         try:
             root = ET.fromstring(content)
         except ET.ParseError as error:
-            raise self.parsing_error("Nmap output is not valid XML", cause=error)
+            raise self.parsing_error(
+                "Nmap output is not valid XML", cause=error
+            ) from error
         if root.tag != "nmaprun":
             raise self.parsing_error("Nmap XML has an unexpected root element")
 
@@ -125,9 +126,7 @@ def _web_url(
         if tunnel_name == "ssl" or service_name in {"https", "https-alt"}
         else "http"
     )
-    rendered_host = (
-        f"[{host}]" if _is_ipv6(host) else host
-    )
+    rendered_host = f"[{host}]" if _is_ipv6(host) else host
     default_port = 443 if scheme == "https" else 80
     suffix = "" if port == default_port else f":{port}"
     return f"{scheme}://{rendered_host}{suffix}/"

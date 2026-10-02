@@ -24,7 +24,6 @@ from webvulnscanner.utils.command import Command
 from webvulnscanner.utils.filesystem import atomic_write_json
 from webvulnscanner.utils.time import utc_now
 
-
 _OUTPUT = re.compile(
     r"^(?P<path>/\S*)\s+\(Status:\s*(?P<status>\d{3})\)"
     r"(?:\s+\[Size:\s*(?P<size>\d+)\])?\s*$"
@@ -65,9 +64,7 @@ class GobusterParser(BaseParser[DiscoveredResource]):
                 status_code=int(match.group("status")),
                 source="gobuster",
                 content_length=(
-                    None
-                    if match.group("size") is None
-                    else int(match.group("size"))
+                    None if match.group("size") is None else int(match.group("size"))
                 ),
             )
             resources[resource.url] = resource
@@ -183,9 +180,7 @@ class GobusterScanner(BaseScanner):
             overwrite=False,
         )
         return ScannerOutput(
-            output_paths=(
-                output.relative_to(self.context.scan_directory).as_posix(),
-            ),
+            output_paths=(output.relative_to(self.context.scan_directory).as_posix(),),
             artifacts={
                 "resources": tuple(item.to_dict() for item in parsed.items),
                 "urls": tuple(item.url for item in parsed.items),

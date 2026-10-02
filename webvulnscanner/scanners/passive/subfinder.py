@@ -9,11 +9,11 @@ from webvulnscanner.config.loader import AppConfig
 from webvulnscanner.core.context import ScanContext
 from webvulnscanner.core.exceptions import ScannerValidationError
 from webvulnscanner.core.subprocess_runner import SubprocessResult
+from webvulnscanner.parsers.base import ParserInput
 from webvulnscanner.parsers.subfinder import (
     SubfinderParser,
     registrable_domain,
 )
-from webvulnscanner.parsers.base import ParserInput
 from webvulnscanner.scanners.base import (
     BaseScanner,
     ScannerOutput,
@@ -101,9 +101,7 @@ class SubfinderScanner(BaseScanner):
             overwrite=False,
         )
         return ScannerOutput(
-            output_paths=(
-                output.relative_to(self.context.scan_directory).as_posix(),
-            ),
+            output_paths=(output.relative_to(self.context.scan_directory).as_posix(),),
             artifacts={"hosts": parsed.items},
         )
 

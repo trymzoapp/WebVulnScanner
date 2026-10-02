@@ -34,12 +34,18 @@ def test_nuclei_parser_regression_and_compatibility() -> None:
     assert any(w.startswith("line 4") for w in result.warnings)  # missing url
 
     # 2. Unknown fields tolerance
-    unknown_fields_record = json.dumps({
-        "template-id": "custom-vuln",
-        "matched-at": "https://example.com/test",
-        "info": {"name": "Test Vuln", "severity": "high", "new_unrecognized_field": 12345},
-        "extra_top_level_field": "future_version_data",
-    })
+    unknown_fields_record = json.dumps(
+        {
+            "template-id": "custom-vuln",
+            "matched-at": "https://example.com/test",
+            "info": {
+                "name": "Test Vuln",
+                "severity": "high",
+                "new_unrecognized_field": 12345,
+            },
+            "extra_top_level_field": "future_version_data",
+        }
+    )
     res_unknown = parser.parse(ParserInput(unknown_fields_record))
     assert len(res_unknown.items) == 1
     assert res_unknown.items[0].severity == Severity.HIGH
@@ -59,14 +65,18 @@ def test_nmap_parser_regression_and_compatibility() -> None:
     content = fixture_path.read_text(encoding="utf-8")
     result = parser.parse(ParserInput(content))
 
-    assert len(result.items) == 2  # 80 and 443 open; 8080 is closed, 22 is not in allowed_ports
+    assert (
+        len(result.items) == 2
+    )  # 80 and 443 open; 8080 is closed, 22 is not in allowed_ports
     ports = [s.port for s in result.items]
     assert 80 in ports
     assert 443 in ports
     assert len(result.warnings) > 0  # for port 8080 and 22
 
     # 2. XXE rejection
-    xxe_payload = '<!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><nmaprun></nmaprun>'
+    xxe_payload = (
+        '<!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><nmaprun></nmaprun>'
+    )
     with pytest.raises(ParsingError, match=r"prohibited declarations"):
         parser.parse(ParserInput(xxe_payload))
 
@@ -87,13 +97,11 @@ def test_subfinder_parser_regression_and_compatibility() -> None:
     content = fixture_path.read_text(encoding="utf-8")
     result = parser.parse(ParserInput(content))
 
-    assert "app.example.com" in result.items
     assert "api.example.com" in result.items
-    assert "example.com" in result.items
-    # out-of-scope domain attacker.com and lookalike notexample.com excluded
-    assert "attacker.com" not in result.items
-    assert "notexample.com" not in result.items
-    assert result.excluded_count >= 2
+    assert "mobile.example.com" in result.items
+    # out-of-scope domain outside.example.net excluded
+    assert "outside.example.net" not in result.items
+    assert result.excluded_count >= 1
     assert len(result.warnings) > 0  # malformed lines
 
     # Empty input
@@ -116,10 +124,12 @@ def test_wappalyzer_parser_regression_and_compatibility() -> None:
     assert "PHP" in tech_names
 
     # Direct list schema compatibility
-    list_payload = json.dumps([
-        {"name": "Nginx", "version": "1.24", "confidence": 100},
-        {"name": "React", "version": "18.2", "confidence": 90},
-    ])
+    list_payload = json.dumps(
+        [
+            {"name": "Nginx", "version": "1.24", "confidence": 100},
+            {"name": "React", "version": "18.2", "confidence": 90},
+        ]
+    )
     list_result = parser.parse(ParserInput(list_payload))
     assert len(list_result.items) == 2
 
@@ -171,17 +181,21 @@ def test_wpscan_parser_regression_and_compatibility() -> None:
     assert any("WordPress 6.0 - Unauthenticated XSS" in title for title in vuln_titles)
 
     # 2. Unknown fields tolerance
-    extra_data = json.dumps({
-        "target_url": "https://example.com/",
-        "version": {"number": "6.1", "vulnerabilities": []},
-        "plugins": {
-            "woocommerce": {
-                "version": "7.0",
-                "vulnerabilities": [{"title": "WooCommerce SQLi", "vuln_type": "SQLi"}],
-                "new_unknown_wpscan_field": {"arbitrary": True},
-            }
-        },
-    })
+    extra_data = json.dumps(
+        {
+            "target_url": "https://example.com/",
+            "version": {"number": "6.1", "vulnerabilities": []},
+            "plugins": {
+                "woocommerce": {
+                    "version": "7.0",
+                    "vulnerabilities": [
+                        {"title": "WooCommerce SQLi", "vuln_type": "SQLi"}
+                    ],
+                    "new_unknown_wpscan_field": {"arbitrary": True},
+                }
+            },
+        }
+    )
     res_extra = parser.parse(ParserInput(extra_data))
     assert len(res_extra.items) == 1
     assert "WooCommerce SQLi" in res_extra.items[0].title

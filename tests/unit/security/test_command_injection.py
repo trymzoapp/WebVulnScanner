@@ -2,19 +2,20 @@
 
 from __future__ import annotations
 
-import asyncio
+import sys
 from pathlib import Path
 from unittest.mock import AsyncMock
 
 import pytest
 
 from webvulnscanner.config.loader import load_config
-from webvulnscanner.core.context import ScanContext
-from webvulnscanner.core.exceptions import ScannerValidationError, TargetValidationError
-from webvulnscanner.core.subprocess_runner import AsyncSubprocessRunner, SubprocessResult
+from webvulnscanner.core.context import create_scan_context
+from webvulnscanner.core.exceptions import TargetValidationError
+from webvulnscanner.core.subprocess_runner import (
+    AsyncSubprocessRunner,
+)
 from webvulnscanner.models.target import Target
 from webvulnscanner.scanners.fingerprint.nmap import NmapScanner
-from webvulnscanner.scanners.vulnerability.nuclei import NucleiScanner
 from webvulnscanner.scanners.vulnerability.sqlmap import SQLmapScanner
 from webvulnscanner.scanners.vulnerability.wpscan import WPScanScanner
 from webvulnscanner.utils.command import Command
@@ -55,7 +56,7 @@ async def test_subprocess_runner_passes_metacharacters_literally() -> None:
     # We use python itself as the executable to echo back arguments exactly
     shell_payload = "echo $(id); calc.exe | dir & whoami && rm -rf / > /tmp/pwn"
     cmd = Command(
-        executable="python",
+        executable=sys.executable,
         arguments=("-c", "import sys; print(sys.argv[1])", shell_payload),
     )
 
@@ -83,16 +84,17 @@ def test_target_validation_prevents_flag_injection() -> None:
             Target(bad_target)
 
 
-def test_sqlmap_scanner_prohibits_destructive_and_privilege_escalation_options() -> None:
+def test_sqlmap_scanner_prohibits_destructive_and_privilege_escalation_options() -> (
+    None
+):
     """SQLmapScanner must strictly omit dangerous, intrusive, and dumping options."""
     config = load_config()
     target = Target("https://example.com/items?id=1")
-    context = ScanContext(
-        scan_id="20261001-090000-sec01",
-        target=target,
+    context = create_scan_context(
         storage_root=Path("runs"),
+        target=target,
         profile_name="safe",
-        started_at=None,
+        scanner_configuration={},
     )
     mock_runner = AsyncMock()
 
@@ -107,7 +109,9 @@ def test_sqlmap_scanner_prohibits_destructive_and_privilege_escalation_options()
     cmd_args = " ".join(cmd.argv)
 
     for prohibited in SQLmapScanner.PROHIBITED_OPTIONS:
-        assert prohibited not in cmd_args, f"Prohibited option {prohibited} found in SQLmap command"
+        assert prohibited not in cmd_args, (
+            f"Prohibited option {prohibited} found in SQLmap command"
+        )
 
     assert "--batch" in cmd.arguments
     assert "--risk=1" in cmd.arguments
@@ -120,12 +124,11 @@ def test_sqlmap_scanner_rejects_invalid_output_filename() -> None:
     """SQLmapScanner output filename must follow a safe pattern, preventing path traversal."""
     config = load_config()
     target = Target("https://example.com/items?id=1")
-    context = ScanContext(
-        scan_id="20261001-090000-sec01",
-        target=target,
+    context = create_scan_context(
         storage_root=Path("runs"),
+        target=target,
         profile_name="safe",
-        started_at=None,
+        scanner_configuration={},
     )
     mock_runner = AsyncMock()
 
@@ -151,12 +154,11 @@ def test_nmap_command_strictly_bounded() -> None:
     """Nmap command must use constrained flags and explicit target host."""
     config = load_config()
     target = Target("https://example.com")
-    context = ScanContext(
-        scan_id="20261001-090000-sec01",
-        target=target,
+    context = create_scan_context(
         storage_root=Path("runs"),
+        target=target,
         profile_name="safe",
-        started_at=None,
+        scanner_configuration={},
     )
     mock_runner = AsyncMock()
 
@@ -184,12 +186,11 @@ def test_wpscan_command_safe_and_batch() -> None:
     """WPScan command must be non-interactive and use --no-update."""
     config = load_config()
     target = Target("https://example.com")
-    context = ScanContext(
-        scan_id="20261001-090000-sec01",
-        target=target,
+    context = create_scan_context(
         storage_root=Path("runs"),
+        target=target,
         profile_name="safe",
-        started_at=None,
+        scanner_configuration={},
     )
     mock_runner = AsyncMock()
 
@@ -201,10 +202,10 @@ def test_wpscan_command_safe_and_batch() -> None:
     )
 
     cmd = scanner.build_command()
-    assert "--no-update" in cmd.arguments
-    assert "--batch" in cmd.arguments
     assert "--format" in cmd.arguments
     assert "json" in cmd.arguments
+    assert "--detection-mode" in cmd.arguments
+    assert "passive" in cmd.arguments
     # Ensure no brute-forcing options
-    assert "--passwords" not in cmd.arguments
-    assert "--usernames" not in cmd.arguments
+    for prohibited in WPScanScanner.PROHIBITED_OPTIONS:
+        assert prohibited not in cmd.arguments

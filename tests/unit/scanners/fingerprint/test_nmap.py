@@ -2,7 +2,7 @@
 
 import asyncio
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from webvulnscanner.config.loader import load_config
@@ -13,14 +13,8 @@ from webvulnscanner.models.target import Target
 from webvulnscanner.scanners.fingerprint.nmap import NmapScanner
 from webvulnscanner.utils.command import Command
 
-
-NOW = datetime(2026, 9, 29, 12, 0, tzinfo=timezone.utc)
-FIXTURE = (
-    Path(__file__).resolve().parents[3]
-    / "fixtures"
-    / "nmap"
-    / "web-services.xml"
-)
+NOW = datetime(2026, 9, 29, 12, 0, tzinfo=UTC)
+FIXTURE = Path(__file__).resolve().parents[3] / "fixtures" / "nmap" / "web-services.xml"
 
 
 def process(
@@ -102,9 +96,9 @@ def test_safe_command_and_xml_output_persistence(tmp_path: Path) -> None:
         "https://example.com/",
     )
     payload = json.loads(
-        (
-            instance.context.scan_directory / "fingerprint" / "nmap.json"
-        ).read_text(encoding="utf-8")
+        (instance.context.scan_directory / "fingerprint" / "nmap.json").read_text(
+            encoding="utf-8"
+        )
     )
     assert len(payload["web_services"]) == 2
     assert result.technologies[0].source == "nmap"

@@ -2,7 +2,7 @@
 
 import asyncio
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from webvulnscanner.config.loader import load_config
@@ -13,8 +13,7 @@ from webvulnscanner.models.target import Target
 from webvulnscanner.scanners.fingerprint.wappalyzer import WappalyzerScanner
 from webvulnscanner.utils.command import Command
 
-
-NOW = datetime(2026, 9, 29, 12, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 9, 29, 12, 0, tzinfo=UTC)
 
 
 def process(
@@ -80,11 +79,9 @@ def test_success_uses_literal_target_and_writes_json(tmp_path: Path) -> None:
     )
     assert result.technologies[0].name == "nginx"
     payload = json.loads(
-        (
-            instance.context.scan_directory
-            / "fingerprint"
-            / "wappalyzer.json"
-        ).read_text(encoding="utf-8")
+        (instance.context.scan_directory / "fingerprint" / "wappalyzer.json").read_text(
+            encoding="utf-8"
+        )
     )
     assert payload["count"] == 1
 
